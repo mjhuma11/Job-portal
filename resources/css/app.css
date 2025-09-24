@@ -1,0 +1,227 @@
+/* tailwind CSS */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* CSS Variables for consistent theming */
+:root {
+    --primary-color: #06afaa;
+    --secondary-color: #ffae00;
+    --accent-color: #f39c12;
+    --text-dark: #172029;
+    --text-light: #586566;
+    --bg-light: #f8f9fa;
+    --white: #ffffff;
+    --border-radius: 8px;
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #34495e;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #f3745d;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-accent {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-accent:hover {
+    background-color: #d68910;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Mega Menu Styles */
+.mega-menu {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.mega-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.mega-menu-item:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-color);
+}
+
+/* User Dropdown Styles */
+.user-dropdown {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.user-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.user-dropdown-item:hover {
+    background-color: var(--bg-light);
+    color: var(--primary-color) !important;
+}
+
+.user-dropdown-item:hover svg {
+    color: var(--primary-color) !important;
+}
+
+/* Navigation Hover Effects */
+nav a:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Carousel Indicator Styles */
+.carousel-indicator.active {
+    background-color: var(--accent-color) !important;
+}
+
+/* Mobile Menu Responsive */
+@media (max-width: 1024px) {
+    .mega-menu {
+        position: static !important;
+        width: 100% !important;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+}
+
+/* Footer Styles */
+footer a:hover {
+    color: var(--accent-color) !important;
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Hero Section Height Optimization */
+.hero-section {
+    min-height: 55vh;
+    max-height: 65vh;
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 50vh;
+        max-height: 60vh;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero-section {
+        min-height: 45vh;
+        max-height: 55vh;
+    }
+}
+
+/* Hero Content Optimization */
+.hero-content {
+    padding: 1rem 0;
+}
+
+.hero-content h1 {
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+.hero-content p {
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+/* Hero Image Container */
+.hero-image-container {
+    height: auto;
+    max-height: 350px;
+}
+
+.hero-image-container img {
+    height: 280px;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .hero-image-container img {
+        height: 240px;
+    }
+}
+
+@media (max-width: 640px) {
+    .hero-image-container img {
+        height: 200px;
+    }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
