@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use App\Models\jobs;
 use App\Models\companies;
 use App\Models\job_applications;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -92,7 +93,10 @@ class EmployerController extends Controller
      */
     public function createJob(): View
     {
-        return view('admin.employers.jobs.create');
+        // Get companies associated with the current employer
+        $companies = companies::where('user_id', Auth::id())->get();
+        
+        return view('admin.employers.jobs.create', compact('companies'));
     }
 
     /**
@@ -428,5 +432,325 @@ class EmployerController extends Controller
 
         return redirect()->route('employer.password.edit')
             ->with('success', 'Password updated successfully.');
+    }
+
+    /**
+     * Display user management dashboard.
+     */
+    public function userManagement(Request $request): View
+    {
+        $query = User::with(['role', 'jobSeeker', 'company']);
+
+        // Apply filters
+        if ($request->filled('role')) {
+            $query->whereHas('role', function($q) use ($request) {
+                $q->where('name', $request->role);
+            });
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $query->whereNotNull('email_verified_at');
+            } elseif ($request->status === 'inactive') {
+                $query->whereNull('email_verified_at');
+            }
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Get statistics
+        $stats = [
+            'total_users' => User::count(),
+            'active_users' => User::whereNotNull('email_verified_at')->count(),
+            'admins' => User::whereHas('role', function($q) {
+                $q->where('name', 'admin');
+            })->count(),
+            'customers' => User::whereHas('role', function($q) {
+                $q->where('name', 'jobseeker');
+            })->count(),
+        ];
+
+        $roles = \App\Models\Role::all();
+
+        return view('admin.employers.users.index', compact('users', 'stats', 'roles'));
+    }
+
+    /**
+     * Show the form for creating a new user.
+     */
+    public function createUser(): View
+    {
+        $roles = \App\Models\Role::all();
+        return view('admin.employers.users.create', compact('roles'));
+    }
+
+    /**
+     * Store a newly created user.
+     */
+    public function storeUser(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role_id' => 'required|exists:roles,id',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role_id' => $request->role_id,
+            'email_verified_at' => now(),
+        ]);
+
+        // Create appropriate profile based on role
+        $role = \App\Models\Role::find($request->role_id);
+        if ($role->name === 'jobseeker') {
+            \App\Models\job_seekers::create([
+                'user_id' => $user->id,
+                'availability_status' => 'immediately',
+                'remote_preference' => false,
+            ]);
+        }
+
+        return redirect()->route('employer.users.index')
+            ->with('success', 'User created successfully.');
+    }
+
+    /**
+     * Display the specified user.
+     */
+    public function showUser(User $user): View
+    {
+        $user->load(['role', 'jobSeeker', 'company']);
+        return view('admin.employers.users.show', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified user.
+     */
+    public function editUser(User $user): View
+    {
+        $roles = \App\Models\Role::all();
+        return view('admin.employers.users.edit', compact('user', 'roles'));
+    }
+
+    /**
+     * Update the specified user.
+     */
+    public function updateUser(Request $request, User $user): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'role_id' => 'required|exists:roles,id',
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        $updateData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'role_id' => $request->role_id,
+        ];
+
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+
+        $user->update($updateData);
+
+        return redirect()->route('employer.users.index')
+            ->with('success', 'User updated successfully.');
+    }
+
+    /**
+     * Remove the specified user.
+     */
+    public function deleteUser(User $user): RedirectResponse
+    {
+        // Prevent deleting the current user
+        if ($user->id === Auth::id()) {
+            return redirect()->route('employer.users.index')
+                ->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->delete();
+
+        return redirect()->route('employer.users.index')
+            ->with('success', 'User deleted successfully.');
+    }
+
+    /**
+     * Toggle user status (active/inactive).
+     */
+    public function toggleUserStatus(User $user): RedirectResponse
+    {
+        if ($user->email_verified_at) {
+            $user->email_verified_at = null;
+            $message = 'User deactivated successfully.';
+        } else {
+            $user->email_verified_at = now();
+            $message = 'User activated successfully.';
+        }
+
+        $user->save();
+
+        return redirect()->route('employer.users.index')
+            ->with('success', $message);
+    }
+
+    /**
+     * Display companies for the employer.
+     */
+    public function companies(): View
+    {
+        $companies = companies::where('user_id', Auth::id())->paginate(10);
+        return view('admin.employers.companies.index', compact('companies'));
+    }
+
+    /**
+     * Store a newly created company.
+     */
+    public function storeCompany(Request $request)
+    {
+        try {
+            // Basic validation - only require name and email
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+            ]);
+
+            // Prepare company data
+            $companyData = [
+                'user_id' => Auth::id(),
+                'name' => $request->name,
+                'email' => $request->email,
+                'logo' => $request->logo, // Will be null if not provided
+                'description' => $request->description,
+                'industry' => $request->industry,
+                'website' => $request->website,
+                'phone' => $request->phone,
+                'founded_year' => $request->founded_year,
+                'featured' => $request->has('featured') ? 1 : 0,
+                'verified' => $request->has('verified') ? 1 : 0,
+            ];
+            
+            // Create company using mass assignment
+            $company = companies::create($companyData);
+
+            // Return appropriate response
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Company added successfully!',
+                    'company' => $company
+                ]);
+            }
+
+            return redirect()->route('employer.companies.index')
+                ->with('success', 'Company added successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
+
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error creating company: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Error creating company: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Show the form for editing a company.
+     */
+    public function editCompany(companies $company): View
+    {
+        // Ensure the company belongs to the current user
+        if ($company->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return view('admin.employers.companies.edit', compact('company'));
+    }
+
+    /**
+     * Update the specified company.
+     */
+    public function updateCompany(Request $request, companies $company): RedirectResponse
+    {
+        // Ensure the company belongs to the current user
+        if ($company->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'description' => 'nullable|string',
+            'website' => 'nullable|url|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+        ]);
+
+        $company->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'description' => $request->description,
+            'website' => $request->website,
+            'phone' => $request->phone,
+            'address' => $request->address,
+        ]);
+
+        return redirect()->route('employer.companies.index')
+            ->with('success', 'Company updated successfully.');
+    }
+
+    /**
+     * Remove the specified company.
+     */
+    public function deleteCompany(companies $company): RedirectResponse
+    {
+        // Ensure the company belongs to the current user
+        if ($company->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if company has any jobs
+        $jobCount = jobs::where('company_id', $company->id)->count();
+        if ($jobCount > 0) {
+            return redirect()->route('employer.companies.index')
+                ->with('error', 'Cannot delete company with existing job postings.');
+        }
+
+        $company->delete();
+
+        return redirect()->route('employer.companies.index')
+            ->with('success', 'Company deleted successfully.');
     }
 }
