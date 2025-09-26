@@ -27,6 +27,15 @@ class job_seekers extends Model
         'linkedin_url',
         'portfolio_url',
         'github_url',
+        'name',
+        'email',
+        'phone',
+        'address',
+        'age',
+        'gender',
+        'date_of_birth',
+        'profile_image',
+        'twitter_url',
     ];
     
     protected $casts = [
@@ -65,5 +74,10 @@ class job_seekers extends Model
     public function skills(): HasMany
     {
         return $this->hasMany(SeekerSkill::class, 'seeker_id', 'seeker_id');
+    }
+    
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'seeker_id', 'seeker_id');
     }
 }

@@ -210,17 +210,68 @@
                                 <p class="text-sm" style="color: var(--text-light);">{{ $job->company->name ?? 'Company Name' }}</p>
                             </div>
                         </div>
-                        <div class="flex gap-2">
-                            <a href="{{ route('job_seeker.jobs.apply', $job) }}" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-300 inline-flex items-center justify-center">
-                                Apply Now
-                                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                                </svg>
-                            </a>
-                            <button class="border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300" 
+                        <div class="flex gap-2 flex-wrap">
+                            <!-- Job Type Button -->
+                            <button class="border border-gray-300 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300" 
                                     style="color: var(--text-dark); border-radius: var(--border-radius);">
                                 {{ ucfirst(str_replace('-', ' ', $job->job_type)) }}
                             </button>
+                            
+                            <!-- View Button -->
+                            <a href="{{ route('employer.jobs.show', $job) }}" class="border border-blue-300 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg text-xs font-medium text-blue-700 transition-all duration-300 inline-flex items-center justify-center">
+                                View
+                                <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </a>
+                            
+                            <!-- Apply Now Button - Always Show -->
+                            @if(auth()->check())
+                                @if(auth()->user()->isJobSeeker())
+                                    @if(auth()->user()->jobSeeker)
+                                        <!-- Job Seeker with Profile - Direct Apply -->
+                                        <a href="{{ route('job_seeker.jobs.apply', $job) }}" class="px-3 py-2 rounded-lg text-xs font-medium text-white transition-all duration-300 inline-flex items-center justify-center" style="background-color: var(--primary-color); border-radius: var(--border-radius);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                            Apply Now
+                                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                            </svg>
+                                        </a>
+                                    @else
+                                        <!-- Job Seeker without Profile - Complete Profile First -->
+                                        <a href="{{ route('job_seeker.profile.edit') }}" class="px-3 py-2 rounded-lg text-xs font-medium text-white transition-all duration-300 inline-flex items-center justify-center" style="background-color: var(--primary-color); border-radius: var(--border-radius);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                            Apply Now
+                                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </a>
+                                    @endif
+                                @elseif(auth()->user()->isEmployer())
+                                    <!-- Employer - Show Apply Button but Disabled -->
+                                    <span class="bg-gray-400 px-3 py-2 rounded-lg text-xs font-medium text-white cursor-not-allowed inline-flex items-center justify-center">
+                                        Apply Now
+                                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                                        </svg>
+                                    </span>
+                                @else
+                                    <!-- Other User Types - Direct Apply -->
+                                    <a href="{{ route('job_seeker.jobs.apply', $job) }}" class="px-3 py-2 rounded-lg text-xs font-medium text-white transition-all duration-300 inline-flex items-center justify-center" style="background-color: var(--primary-color); border-radius: var(--border-radius);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                        Apply Now
+                                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                                        </svg>
+                                    </a>
+                                @endif
+                            @else
+                                <!-- Guest User - Login to Apply -->
+                                <a href="{{ route('login') }}" class="px-3 py-2 rounded-lg text-xs font-medium text-white transition-all duration-300 inline-flex items-center justify-center" style="background-color: var(--primary-color); border-radius: var(--border-radius);" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                                    Apply Now
+                                    <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                                    </svg>
+                                </a>
+                            @endif
                         </div>
                     </div>
                     <p class="text-sm mb-4" style="color: var(--text-light);">

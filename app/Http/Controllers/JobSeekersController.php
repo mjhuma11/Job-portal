@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\education;
+use App\Models\job_applications;
 use App\Models\job_seekers;
 use App\Models\jobs;
 use App\Models\SeekerSkill;
@@ -40,6 +41,335 @@ class JobSeekersController extends Controller
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
         
         return view('admin.job_seeker.profile-edit', compact('jobSeeker', 'user'));
+    }
+
+    /**
+     * Show the tabbed profile edit form.
+     */
+    public function editProfileTabs(): View
+    {
+        $user = Auth::user();
+        $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+        
+        // Initialize empty collections
+        $workExperiences = collect();
+        $educations = collect();
+        $skills = collect();
+        $projects = collect();
+        
+        // Get existing data if jobSeeker exists
+        if ($jobSeeker) {
+            $workExperiences = work_experience::where('seeker_id', $jobSeeker->seeker_id)
+                ->orderBy('start_date', 'desc')
+                ->get();
+                
+            $educations = education::where('user_id', $user->id)
+                ->orderBy('passing_year', 'desc')
+                ->get();
+                
+            $skills = SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)
+                ->orderBy('proficiency', 'desc')
+                ->get();
+
+            $projects = \App\Models\Project::where('seeker_id', $jobSeeker->seeker_id)
+                ->orderBy('start_date', 'desc')
+                ->get();
+        } else {
+            // Create a basic jobSeeker object with default values for new users
+            $jobSeeker = new job_seekers([
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ]);
+        }
+        
+        return view('admin.job_seeker.profile-edit-tabs', compact('jobSeeker', 'user', 'workExperiences', 'educations', 'skills', 'projects'));
+    }
+
+    /**
+     * Update the job seeker's profile from tabbed form.
+     */
+    public function updateProfileTabs(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        
+        // Validate the request
+        $validated = $request->validate([
+            // Basic Information
+            'full_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'required|string|max:20',
+            'gender' => 'nullable|in:male,female,other',
+            'date_of_birth' => 'nullable|date',
+            'address' => 'nullable|string|max:500',
+            'linkedin_url' => 'nullable|url|max:255',
+            'github_url' => 'nullable|url|max:255',
+            'portfolio_url' => 'nullable|url|max:255',
+            'twitter_url' => 'nullable|url|max:255',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'resume_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
+            
+            // Education
+            'ssc_institution' => 'nullable|string|max:255',
+            'ssc_year' => 'nullable|integer|min:1980|max:2030',
+            'ssc_grade' => 'nullable|string|max:10',
+            'hsc_institution' => 'nullable|string|max:255',
+            'hsc_year' => 'nullable|integer|min:1980|max:2030',
+            'hsc_grade' => 'nullable|string|max:10',
+            'graduation_institution' => 'nullable|string|max:255',
+            'graduation_year' => 'nullable|integer|min:1980|max:2030',
+            'graduation_grade' => 'nullable|string|max:10',
+            'graduation_major' => 'nullable|string|max:100',
+            'masters_institution' => 'nullable|string|max:255',
+            'masters_year' => 'nullable|integer|min:1980|max:2030',
+            'masters_grade' => 'nullable|string|max:10',
+            'masters_major' => 'nullable|string|max:100',
+            
+            // Skills
+            'skills' => 'nullable|array',
+            'skills.*.name' => 'required_with:skills|string|max:100',
+            'skills.*.proficiency' => 'nullable|in:beginner,intermediate,advanced,expert',
+            'skills.*.years' => 'nullable|integer|min:0|max:50',
+            'skills.*.category' => 'nullable|in:technical,soft,language,other',
+            'skills.*.certification' => 'nullable|string|max:255',
+            
+            // Experience
+            'experiences' => 'nullable|array',
+            'experiences.*.title' => 'required_with:experiences|string|max:150',
+            'experiences.*.company' => 'required_with:experiences|string|max:200',
+            'experiences.*.location' => 'nullable|string|max:150',
+            'experiences.*.type' => 'nullable|in:full-time,part-time,contract,internship,freelance',
+            'experiences.*.start_date' => 'required_with:experiences|date',
+            'experiences.*.end_date' => 'nullable|date|after:experiences.*.start_date',
+            'experiences.*.currently_working' => 'nullable|boolean',
+            'experiences.*.description' => 'nullable|string',
+            'experiences.*.achievements' => 'nullable|string',
+            
+            // Projects
+            'projects' => 'nullable|array',
+            'projects.*.name' => 'required_with:projects|string|max:200',
+            'projects.*.role' => 'nullable|string|max:100',
+            'projects.*.category' => 'nullable|in:professional,academic,personal,open-source',
+            'projects.*.url' => 'nullable|url|max:255',
+            'projects.*.start_date' => 'nullable|date',
+            'projects.*.end_date' => 'nullable|date|after:projects.*.start_date',
+            'projects.*.ongoing' => 'nullable|boolean',
+            'projects.*.description' => 'nullable|string',
+            'projects.*.technologies' => 'nullable|string|max:500',
+            'projects.*.outcomes' => 'nullable|string',
+        ]);
+        
+        // Handle file uploads
+        $profileImagePath = null;
+        $resumeFilePath = null;
+        
+        if ($request->hasFile('profile_image')) {
+            $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
+        }
+        
+        if ($request->hasFile('resume_file')) {
+            $resumeFilePath = $request->file('resume_file')->store('resumes', 'public');
+        }
+        
+        // Update user information
+        $user->update([
+            'name' => $validated['full_name'],
+            'email' => $validated['email'],
+        ]);
+        
+        // Update or create job seeker profile
+        $jobSeekerData = [
+            'user_id' => $user->id,
+            'name' => $validated['full_name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'gender' => $validated['gender'] ?? null,
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'linkedin_url' => $validated['linkedin_url'] ?? null,
+            'github_url' => $validated['github_url'] ?? null,
+            'portfolio_url' => $validated['portfolio_url'] ?? null,
+            'twitter_url' => $validated['twitter_url'] ?? null,
+        ];
+        
+        if ($profileImagePath) {
+            $jobSeekerData['profile_image'] = $profileImagePath;
+        }
+        
+        if ($resumeFilePath) {
+            $jobSeekerData['resume_file'] = $resumeFilePath;
+        }
+        
+        $jobSeeker = job_seekers::updateOrCreate(
+            ['user_id' => $user->id],
+            $jobSeekerData
+        );
+        
+        // Handle Education Data
+        $this->handleEducationData($user, $validated);
+        
+        // Handle Skills Data
+        if (isset($validated['skills'])) {
+            $this->handleSkillsData($jobSeeker, $validated['skills']);
+        }
+        
+        // Handle Experience Data
+        if (isset($validated['experiences'])) {
+            $this->handleExperienceData($jobSeeker, $validated['experiences']);
+        }
+        
+        // Handle Projects Data
+        if (isset($validated['projects'])) {
+            $this->handleProjectsData($jobSeeker, $validated['projects']);
+        }
+        
+        return redirect()->route('job_seeker.profile')
+            ->with('success', 'Profile updated successfully!');
+    }
+    
+    /**
+     * Handle education data storage
+     */
+    private function handleEducationData($user, $validated)
+    {
+        // Clear existing education records
+        education::where('user_id', $user->id)->delete();
+        
+        // Add SSC if provided
+        if (!empty($validated['ssc_institution'])) {
+            education::create([
+                'user_id' => $user->id,
+                'degree_name' => 'SSC',
+                'institute_name' => $validated['ssc_institution'],
+                'passing_year' => $validated['ssc_year'],
+                'result_value' => $validated['ssc_grade'],
+            ]);
+        }
+        
+        // Add HSC if provided
+        if (!empty($validated['hsc_institution'])) {
+            education::create([
+                'user_id' => $user->id,
+                'degree_name' => 'HSC',
+                'institute_name' => $validated['hsc_institution'],
+                'passing_year' => $validated['hsc_year'],
+                'result_value' => $validated['hsc_grade'],
+            ]);
+        }
+        
+        // Add Graduation if provided
+        if (!empty($validated['graduation_institution'])) {
+            education::create([
+                'user_id' => $user->id,
+                'degree_name' => 'Bachelor\'s Degree',
+                'institute_name' => $validated['graduation_institution'],
+                'passing_year' => $validated['graduation_year'],
+                'result_value' => $validated['graduation_grade'],
+                'major_subject' => $validated['graduation_major'],
+            ]);
+        }
+        
+        // Add Masters if provided
+        if (!empty($validated['masters_institution'])) {
+            education::create([
+                'user_id' => $user->id,
+                'degree_name' => 'Master\'s Degree',
+                'institute_name' => $validated['masters_institution'],
+                'passing_year' => $validated['masters_year'],
+                'result_value' => $validated['masters_grade'],
+                'major_subject' => $validated['masters_major'],
+            ]);
+        }
+    }
+    
+    /**
+     * Handle skills data storage
+     */
+    private function handleSkillsData($jobSeeker, $skills)
+    {
+        // Clear existing skills
+        SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)->delete();
+        
+        foreach ($skills as $skillData) {
+            if (!empty($skillData['name'])) {
+                SeekerSkill::create([
+                    'seeker_id' => $jobSeeker->seeker_id,
+                    'skill_name' => $skillData['name'],
+                    'proficiency' => $this->mapProficiencyToNumber($skillData['proficiency'] ?? 'intermediate'),
+                    'years_experience' => $skillData['years'] ?? null,
+                    'category' => $skillData['category'] ?? 'technical',
+                    'certification' => $skillData['certification'] ?? null,
+                ]);
+            }
+        }
+    }
+    
+    /**
+     * Handle experience data storage
+     */
+    private function handleExperienceData($jobSeeker, $experiences)
+    {
+        // Clear existing experiences
+        work_experience::where('seeker_id', $jobSeeker->seeker_id)->delete();
+        
+        foreach ($experiences as $expData) {
+            if (!empty($expData['title']) && !empty($expData['company'])) {
+                work_experience::create([
+                    'seeker_id' => $jobSeeker->seeker_id,
+                    'job_title' => $expData['title'],
+                    'company_name' => $expData['company'],
+                    'location' => $expData['location'] ?? null,
+                    'employment_type' => str_replace('-', '_', $expData['type'] ?? 'full_time'),
+                    'start_date' => $expData['start_date'],
+                    'end_date' => isset($expData['currently_working']) && $expData['currently_working'] ? null : $expData['end_date'],
+                    'is_current' => isset($expData['currently_working']) && $expData['currently_working'],
+                    'description' => $expData['description'] ?? null,
+                    'achievements' => $expData['achievements'] ?? null,
+                ]);
+            }
+        }
+    }
+    
+    /**
+     * Handle projects data storage
+     */
+    private function handleProjectsData($jobSeeker, $projects)
+    {
+        // Clear existing projects
+        \App\Models\Project::where('seeker_id', $jobSeeker->seeker_id)->delete();
+        
+        foreach ($projects as $projectData) {
+            if (!empty($projectData['name'])) {
+                \App\Models\Project::create([
+                    'seeker_id' => $jobSeeker->seeker_id,
+                    'name' => $projectData['name'],
+                    'role' => $projectData['role'] ?? null,
+                    'category' => $projectData['category'] ?? 'personal',
+                    'url' => $projectData['url'] ?? null,
+                    'start_date' => $projectData['start_date'] ?? null,
+                    'end_date' => isset($projectData['ongoing']) && $projectData['ongoing'] ? null : $projectData['end_date'],
+                    'ongoing' => isset($projectData['ongoing']) && $projectData['ongoing'],
+                    'description' => $projectData['description'] ?? null,
+                    'technologies' => $projectData['technologies'] ?? null,
+                    'outcomes' => $projectData['outcomes'] ?? null,
+                ]);
+            }
+        }
+    }
+    
+    /**
+     * Map proficiency text to number for database storage
+     */
+    private function mapProficiencyToNumber($proficiency)
+    {
+        $mapping = [
+            'beginner' => 1,
+            'intermediate' => 2,
+            'advanced' => 3,
+            'expert' => 4,
+        ];
+        
+        return $mapping[$proficiency] ?? 2;
     }
 
     /**
@@ -149,8 +479,8 @@ class JobSeekersController extends Controller
         }
         
         // Check if user has already applied for this job
-        $existingApplication = $jobSeeker->jobApplications()
-            ->where('job_id', $job->id)
+        $existingApplication = job_applications::where('job_id', $job->id)
+            ->where('seeker_id', $jobSeeker->seeker_id)
             ->first();
             
         if ($existingApplication) {
@@ -176,21 +506,37 @@ class JobSeekersController extends Controller
         ]);
         
         // Handle file upload
+        $resumePath = null;
         if ($request->hasFile('resume')) {
             $resumePath = $request->file('resume')->store('resumes', 'public');
-            $validated['resume_path'] = $resumePath;
         }
         
-        // Create job application
-        $applicationData = array_merge($validated, [
-            'job_seeker_id' => $jobSeeker->seeker_id,
-            'job_id' => $job->id,
-            'applied_at' => now(),
-            'status' => 'pending',
-        ]);
+        // Generate unique application ID
+        $applicationId = time() . $jobSeeker->seeker_id;
         
-        // Create the application (you'll need to adjust this based on your job_applications model)
-        // \App\Models\job_applications::create($applicationData);
+        // Create job application
+        job_applications::create([
+            'application_id' => $applicationId,
+            'job_id' => $job->id,
+            'seeker_id' => $jobSeeker->seeker_id,
+            'cover_letter' => $validated['cover_letter'],
+            'resume_file' => $resumePath,
+            'application_status' => 'pending',
+            'applied_at' => now(),
+            'status_updated_at' => now(),
+            'notes' => json_encode([
+                'full_name' => $validated['full_name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'location' => $validated['location'],
+                'current_position' => $validated['current_position'],
+                'experience' => $validated['experience'],
+                'skills' => $validated['skills'],
+                'availability' => $validated['availability'],
+                'salary_expectation' => $validated['salary_expectation'],
+                'hear_about' => $validated['hear_about'],
+            ])
+        ]);
         
         return redirect()->route('job_seeker.applications')
             ->with([

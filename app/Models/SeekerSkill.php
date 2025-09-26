@@ -16,6 +16,9 @@ class SeekerSkill extends Model
         'seeker_id',
         'skill_name',
         'proficiency',
+        'years_experience',
+        'category',
+        'certification',
     ];
     
     protected $casts = [

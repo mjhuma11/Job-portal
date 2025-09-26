@@ -13,7 +13,7 @@
     --bg-light: #f8f9fa;
     --white: #ffffff;
     --border-radius: 8px;
-    --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow: 0 2px 4px #221e1e1a;
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
 }
 
@@ -137,6 +137,7 @@ footer a:hover {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);

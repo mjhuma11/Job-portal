@@ -1,0 +1,114 @@
+/* Profile Tabs Styling */
+.tab-btn.active {
+    border-bottom-color: #3b82f6 !important;
+    color: #3b82f6 !important;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.skill-entry, .experience-entry, .project-entry {
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.skill-entry:hover, .experience-entry:hover, .project-entry:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.education-fields {
+    transition: all 0.3s ease;
+}
+
+.remove-skill, .remove-experience, .remove-project {
+    transition: all 0.2s ease;
+}
+
+.remove-skill:hover, .remove-experience:hover, .remove-project:hover {
+    transform: scale(1.1);
+}
+
+/* Form validation styles */
+.border-red-500 {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 1px #ef4444;
+}
+
+/* File upload styling */
+.file-upload-area {
+    transition: all 0.3s ease;
+}
+
+.file-upload-area:hover {
+    background-color: #f9fafb;
+    border-color: #3b82f6;
+}
+
+/* Progress indicator */
+.tab-progress {
+    height: 4px;
+    background: linear-gradient(to right, #3b82f6 0%, #3b82f6 20%, #e5e7eb 20%, #e5e7eb 100%);
+    transition: all 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .tab-btn {
+        font-size: 0.75rem;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .tab-btn svg {
+        display: none;
+    }
+    
+    .grid.grid-cols-1.md\\:grid-cols-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .grid.grid-cols-1.md\\:grid-cols-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animation for tab switching */
+.tab-content {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Button hover effects */
+.next-btn, .prev-btn {
+    transition: all 0.2s ease;
+}
+
+.next-btn:hover, .prev-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Profile image preview styling */
+#profile-preview {
+    border: 3px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+#profile-preview:hover {
+    border-color: #3b82f6;
+}

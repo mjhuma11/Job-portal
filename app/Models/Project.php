@@ -6,33 +6,28 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class work_experience extends Model
+class Project extends Model
 {
     use HasFactory;
     
-    protected $table = 'work_experience';
-    protected $primaryKey = 'experience_id';
-    
-    // Disable timestamps since the table doesn't have created_at/updated_at columns
-    public $timestamps = false;
-    
     protected $fillable = [
         'seeker_id',
-        'company_name',
-        'job_title',
-        'employment_type',
+        'name',
+        'role',
+        'category',
+        'url',
         'start_date',
         'end_date',
-        'is_current',
-        'location',
+        'ongoing',
         'description',
-        'achievements',
+        'technologies',
+        'outcomes',
     ];
     
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'is_current' => 'boolean',
+        'ongoing' => 'boolean',
     ];
     
     // Relationships
@@ -42,14 +37,14 @@ class work_experience extends Model
     }
     
     // Scopes
-    public function scopeCurrent($query)
+    public function scopeOngoing($query)
     {
-        return $query->where('is_current', true);
+        return $query->where('ongoing', true);
     }
     
-    public function scopeByEmploymentType($query, $type)
+    public function scopeByCategory($query, $category)
     {
-        return $query->where('employment_type', $type);
+        return $query->where('category', $category);
     }
     
     public function scopeRecent($query)

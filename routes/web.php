@@ -204,8 +204,10 @@ Route::prefix('job-seeker')->name('job_seeker.')->middleware(['auth', 'jobseeker
     })->name('dashboard');
     
     Route::get('/profile', [JobSeekersController::class, 'showProfile'])->name('profile');
-    Route::get('/profile/edit', [JobSeekersController::class, 'editProfile'])->name('profile.edit');
-    Route::put('/profile', [JobSeekersController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/profile/edit', [JobSeekersController::class, 'editProfileTabs'])->name('profile.edit');
+    Route::get('/profile/edit-tabs', [JobSeekersController::class, 'editProfileTabs'])->name('profile.edit.tabs');
+    Route::put('/profile', [JobSeekersController::class, 'updateProfileTabs'])->name('profile.update');
+    Route::put('/profile/tabs', [JobSeekersController::class, 'updateProfileTabs'])->name('profile.update.tabs');
     
     // Resume Builder Routes
     Route::get('/resume', [JobSeekersController::class, 'showResume'])->name('resume');
