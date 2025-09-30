@@ -314,25 +314,50 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        // If not JSON, it's probably an HTML error page
+                        throw new Error('Server returned an unexpected response. Please refresh the page and try again.');
+                    }
+                })
                 .then(data => {
                     if (data.success) {
                         // Show success message
-                        alert(data.message);
-                        // Close modal
-                        closeCategoryModal();
-                        // Reset form
-                        form.reset();
-                        // Optionally reload the page or update UI
-                        location.reload();
+                        Swal.fire({
+                            title: 'Success!',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            // Close modal
+                            closeCategoryModal();
+                            // Reset form
+                            form.reset();
+                            // Optionally reload the page or update UI
+                            location.reload();
+                        });
                     } else {
                         // Handle validation errors
-                        alert('Error creating category. Please check the form.');
+                        Swal.fire({
+                            title: 'Error!',
+                            text: data.message || 'Error creating category. Please check the form.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while creating the category.');
+                    Swal.fire({
+                        title: 'Error!',
+                        text: error.message || 'An error occurred while creating the category. Please refresh the page and try again.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 })
                 .finally(() => {
                     // Reset button state

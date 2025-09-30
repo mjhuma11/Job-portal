@@ -33,54 +33,52 @@
         <div class="relative h-64">
             <canvas id="salesChart"></canvas>
         </div>
+        <!-- Fallback content if chart fails to load -->
+        <div id="chart-fallback" class="hidden text-center py-8 text-gray-500">
+            <p>Chart data is not available at the moment.</p>
+        </div>
     </div>
 
     <!-- Notifications -->
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
         <div class="flex items-center justify-between mb-6">
             <h3 class="text-xl font-bold text-gray-900">Recent Activity</h3>
-            <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full">4 new</span>
+            <span class="px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full">
+                @if(isset($stats))
+                    {{ $stats['unread_notifications'] ?? 0 }} new
+                @else
+                    0 new
+                @endif
+            </span>
         </div>
         <div class="space-y-4">
-            <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors duration-200">
-                <div class="w-3 h-3 bg-teal-500 rounded-full mt-2 flex-shrink-0"></div>
-                <div class="flex-1">
-                    <p class="text-sm text-gray-900">
-                        <span class="font-bold">TechCorp</span> viewed your profile
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">Just Now</p>
+            @if(isset($notifications) && $notifications->count() > 0)
+                @foreach($notifications->take(4) as $notification)
+                <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors duration-200">
+                    <div class="w-3 h-3 bg-teal-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-900">
+                            @if(isset($notification->message))
+                                {{ $notification->message }}
+                            @else
+                                New notification
+                            @endif
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            @if(isset($notification->created_at))
+                                {{ $notification->created_at->diffForHumans() }}
+                            @else
+                                Just now
+                            @endif
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <div class="flex items-start space-x-3 p-3 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors duration-200">
-                <div class="w-3 h-3 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
-                <div class="flex-1">
-                    <p class="text-sm text-gray-900">
-                        <span class="font-bold">Morin Denver</span> accepted your resume on 
-                        <span class="font-medium">JobStock</span>
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">25 min ago</p>
+                @endforeach
+            @else
+                <div class="text-center py-8 text-gray-500">
+                    <p>No recent notifications</p>
                 </div>
-            </div>
-            <div class="flex items-start space-x-3 p-3 bg-red-50 rounded-xl hover:bg-red-100 transition-colors duration-200">
-                <div class="w-3 h-3 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
-                <div class="flex-1">
-                    <p class="text-sm text-gray-900">
-                        Your job <span class="font-bold">#456256</span> expired yesterday
-                        <span class="font-medium">Your Partner..</span>
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">10 days ago</p>
-                </div>
-            </div>
-            <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-xl hover:bg-green-100 transition-colors duration-200">
-                <div class="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                <div class="flex-1">
-                    <p class="text-sm text-gray-900">
-                        <span class="font-bold">Musth Verma</span> left a review on 
-                        <span class="font-medium">Your Message</span>
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">Just Now</p>
-                </div>
-            </div>
+            @endif
         </div>
         <div class="mt-6">
             <button class="w-full py-2 text-center text-teal-600 font-medium hover:bg-teal-50 rounded-lg transition-colors duration-200">

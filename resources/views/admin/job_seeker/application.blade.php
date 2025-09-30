@@ -2,6 +2,15 @@
 
 @section('title', 'Job Application - CareerBridge')
 
+@push('styles')
+<style>
+/* Hide SVG console errors */
+svg path[d*="A11.955"] {
+    display: none !important;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-4xl mx-auto px-4">
@@ -73,7 +82,14 @@
                             <div class="mt-2 text-sm text-red-700">
                                 <ul class="list-disc pl-5 space-y-1">
                                     @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
+                                        <li>
+                                            @if(str_contains($error, 'resume'))
+                                                <strong>Resume Upload:</strong> {{ $error }}
+                                                <br><small class="text-red-600">Make sure you've selected a PDF, DOC, or DOCX file under 5MB.</small>
+                                            @else
+                                                {{ $error }}
+                                            @endif
+                                        </li>
                                     @endforeach
                                 </ul>
                             </div>
@@ -161,17 +177,20 @@
                     
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Resume *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Resume <span class="text-red-500">*</span>
+                                <span class="text-xs text-gray-500">(PDF, DOC, DOCX - Max 5MB)</span>
+                            </label>
                             <div class="flex items-center justify-center w-full">
                                 <label for="resume" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
                                     <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                        <svg class="w-8 h-8 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                         </svg>
                                         <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
                                         <p class="text-xs text-gray-500">PDF, DOC, DOCX (MAX. 5MB)</p>
                                     </div>
-                                    <input id="resume" name="resume" type="file" class="hidden" required />
+                                    <input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" class="hidden" />
                                 </label>
                             </div>
                         </div>
@@ -257,7 +276,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // File upload preview
+    // File upload preview and validation
     const resumeInput = document.getElementById('resume');
     const resumeLabel = resumeInput.closest('label');
     
@@ -266,17 +285,35 @@ document.addEventListener('DOMContentLoaded', function() {
         if (file) {
             const fileName = file.name;
             const fileSize = (file.size / 1024 / 1024).toFixed(2); // Convert to MB
+            const maxSize = 5; // 5MB max
             
-            // Update the label to show selected file
-            resumeLabel.innerHTML = `
-                <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                    <svg class="w-8 h-8 mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <p class="mb-2 text-sm text-gray-700"><span class="font-semibold">Selected:</span> ${fileName}</p>
-                    <p class="text-xs text-gray-500">Size: ${fileSize} MB</p>
-                    <p class="text-xs text-blue-600 mt-2">Click to change file</p>
-                </div>
+            // Check file size
+            if (file.size > maxSize * 1024 * 1024) {
+                alert(`File size (${fileSize}MB) exceeds the maximum limit of ${maxSize}MB. Please choose a smaller file.`);
+                resumeInput.value = '';
+                return;
+            }
+            
+            // Check file type
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please select a PDF, DOC, or DOCX file.');
+                resumeInput.value = '';
+                return;
+            }
+            
+            // Update the label to show selected file (without recreating the input)
+            resumeLabel.className = 'flex flex-col items-center justify-center w-full h-32 border-2 border-green-300 border-dashed rounded-lg cursor-pointer bg-green-50 hover:bg-green-100';
+            
+            // Find the content div and update it
+            const contentDiv = resumeLabel.querySelector('div');
+            contentDiv.innerHTML = `
+                <svg class="w-8 h-8 mb-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="mb-2 text-sm text-gray-700"><span class="font-semibold">Selected:</span> ${fileName}</p>
+                <p class="text-xs text-gray-500">Size: ${fileSize} MB</p>
+                <p class="text-xs text-blue-600 mt-2">Click to change file</p>
             `;
         }
     });
@@ -286,6 +323,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     
     form.addEventListener('submit', function(e) {
+        // Validate resume file
+        const resumeFile = document.getElementById('resume');
+        if (!resumeFile || !resumeFile.files || resumeFile.files.length === 0) {
+            e.preventDefault();
+            alert('Please select a resume file before submitting.');
+            
+            // Scroll to resume section
+            const resumeSection = document.querySelector('label[for="resume"]');
+            if (resumeSection) {
+                resumeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                resumeSection.style.border = '2px solid #ef4444';
+                setTimeout(() => {
+                    resumeSection.style.border = '';
+                }, 3000);
+            }
+            return false;
+        }
+        
+        // Validate terms checkbox
+        const termsCheckbox = document.getElementById('terms');
+        if (!termsCheckbox || !termsCheckbox.checked) {
+            e.preventDefault();
+            alert('Please accept the terms and conditions before submitting.');
+            
+            // Scroll to terms section
+            if (termsCheckbox) {
+                termsCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                termsCheckbox.focus();
+            }
+            return false;
+        }
+        
+        // Show loading state
         submitBtn.disabled = true;
         submitBtn.innerHTML = `
             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

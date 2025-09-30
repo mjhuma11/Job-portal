@@ -5,7 +5,7 @@
         <p class="px-6 text-xs uppercase text-gray-500 font-semibold mb-6">Main Navigation</p>
         <nav class="space-y-2">
             <!-- User Dashboard -->
-            <a href="#" class="bg-teal-50 border-r-4 border-teal-500 text-teal-700 flex items-center px-6 py-3 text-sm font-medium">
+            <a href="{{ route('job_seeker.dashboard') }}" class="bg-teal-50 border-r-4 border-teal-500 text-teal-700 flex items-center px-6 py-3 text-sm font-medium">
                 <div class="w-5 h-5 mr-3 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
@@ -32,6 +32,15 @@
                     </svg>
                 </div>
                 My Resume
+                @php
+                    $jobSeeker = auth()->user()->jobSeeker ?? null;
+                    $hasResume = $jobSeeker && $jobSeeker->resume_file;
+                @endphp
+                @if($hasResume)
+                    <span class="bg-green-500 text-white text-xs font-medium w-5 h-5 rounded-full ml-auto flex items-center justify-center">✓</span>
+                @else
+                    <span class="bg-orange-500 text-white text-xs font-medium px-2 py-1 rounded-full ml-auto">Add</span>
+                @endif
             </a>
             
             <!-- Resume Management -->
@@ -94,11 +103,17 @@
                     </svg>
                 </div>
                 Messages
-                <span class="bg-green-500 text-white text-xs font-medium w-5 h-5 rounded-full ml-auto flex items-center justify-center">4</span>
+                <span class="bg-green-500 text-white text-xs font-medium w-5 h-5 rounded-full ml-auto flex items-center justify-center">
+                    @if(isset($stats))
+                        {{ $stats['unread_messages'] ?? 0 }}
+                    @else
+                        0
+                    @endif
+                </span>
             </a>
             
             <!-- Change Password -->
-            <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 flex items-center px-6 py-3 text-sm font-medium transition-colors duration-200">
+            <a href="{{ route('profile.edit') }}" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 flex items-center px-6 py-3 text-sm font-medium transition-colors duration-200">
                 <div class="w-5 h-5 mr-3 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
@@ -120,14 +135,17 @@
             </a>
             
             <!-- Log Out -->
-            <a href="#" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 flex items-center px-6 py-3 text-sm font-medium transition-colors duration-200">
-                <div class="w-5 h-5 mr-3 flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                Log Out
-            </a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full text-left text-gray-600 hover:bg-gray-50 hover:text-gray-900 flex items-center px-6 py-3 text-sm font-medium transition-colors duration-200">
+                    <div class="w-5 h-5 mr-3 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    Log Out
+                </button>
+            </form>
         </nav>
     </div>
 </div>

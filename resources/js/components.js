@@ -12,8 +12,8 @@
         // Initialize Footer
         initializeFooter();
 
-        // Initialize Carousel (if exists)
-        initializeCarousel();
+        // Initialize Categories Pagination
+        initializeCategoriesPagination();
 
         console.log('CareerBridge: All components initialized successfully!');
     });
@@ -152,139 +152,62 @@
         });
     }
 
-    // Carousel Functions
-    function initializeCarousel() {
-        const carousel = document.getElementById('heroSection');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const indicators = document.querySelectorAll('.carousel-indicator');
-
-        if (!carousel || !prevBtn || !nextBtn || indicators.length === 0) {
-            console.log('CareerBridge: Carousel elements not found, skipping initialization');
-            return;
-        }
-
-        console.log('CareerBridge: Initializing carousel...');
-
-        let currentSlide = 0;
-        const totalSlides = 3;
-        let autoSlideInterval;
-
-        // Carousel data - Only background images change, hero image and content stay fixed
-        const slides = [
-            {}, // Slide 1 - only background changes
-            {}, // Slide 2 - only background changes  
-            {}  // Slide 3 - only background changes
-        ];
-
-        function showSlide(index) {
-            // Update background images only
-            document.querySelectorAll('[id^="bg"]').forEach((bg, i) => {
-                bg.style.opacity = i === index ? '1' : '0';
-            });
-
-            // DO NOT update hero image - keep it static
-            // DO NOT update any text content - keep it fixed
-
-            // Update indicators only
-            indicators.forEach((indicator, i) => {
-                indicator.classList.toggle('active', i === index);
-                if (i === index) {
-                    indicator.style.backgroundColor = 'var(--accent-color)';
-                } else {
-                    indicator.style.backgroundColor = '';
-                }
-            });
-
-            currentSlide = index;
-        }
-
-        function nextSlide() {
-            const next = (currentSlide + 1) % totalSlides;
-            showSlide(next);
-        }
-
-        function prevSlide() {
-            const prev = (currentSlide - 1 + totalSlides) % totalSlides;
-            showSlide(prev);
-        }
-
-        function startAutoSlide() {
-            autoSlideInterval = setInterval(nextSlide, 5000);
-        }
-
-        function stopAutoSlide() {
-            clearInterval(autoSlideInterval);
-        }
-
-        // Event listeners
-        prevBtn.addEventListener('click', () => {
-            stopAutoSlide();
-            prevSlide();
-            startAutoSlide();
-        });
-
-        nextBtn.addEventListener('click', () => {
-            stopAutoSlide();
-            nextSlide();
-            startAutoSlide();
-        });
-
-        // Indicator clicks
-        indicators.forEach((indicator, index) => {
-            indicator.addEventListener('click', () => {
-                stopAutoSlide();
-                showSlide(index);
-                startAutoSlide();
-            });
-        });
-
-        // Pause on hover
-        carousel.addEventListener('mouseenter', stopAutoSlide);
-        carousel.addEventListener('mouseleave', startAutoSlide);
-
-        // Touch/swipe support for mobile
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        carousel.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        });
-
-        carousel.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-
-        function handleSwipe() {
-            if (touchEndX < touchStartX - 50) {
-                stopAutoSlide();
-                nextSlide();
-                startAutoSlide();
-            }
-            if (touchEndX > touchStartX + 50) {
-                stopAutoSlide();
-                prevSlide();
-                startAutoSlide();
-            }
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'ArrowLeft') {
-                stopAutoSlide();
-                prevSlide();
-                startAutoSlide();
-            } else if (e.key === 'ArrowRight') {
-                stopAutoSlide();
-                nextSlide();
-                startAutoSlide();
+    // Categories Pagination Functions
+    function initializeCategoriesPagination() {
+        // Handle category pagination clicks with smooth scroll
+        document.addEventListener('click', function(e) {
+            // Check if clicked element is a category pagination link
+            if (e.target.closest('a[href*="categories_page"]')) {
+                e.preventDefault();
+                const link = e.target.closest('a');
+                const url = link.href;
+                
+                // Show loading state
+                showNotification('Loading categories...', 'info');
+                
+                // Fetch new page content
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Parse the response
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Find the categories section in the new content
+                    const newCategoriesSection = doc.querySelector('.py-16[style*="var(--bg-light)"]');
+                    const currentCategoriesSection = document.querySelector('.py-16[style*="var(--bg-light)"]');
+                    
+                    if (newCategoriesSection && currentCategoriesSection) {
+                        // Replace the categories section
+                        currentCategoriesSection.innerHTML = newCategoriesSection.innerHTML;
+                        
+                        // Scroll to categories section
+                        currentCategoriesSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                        
+                        // Update URL without page reload
+                        window.history.pushState({}, '', url);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading categories:', error);
+                    showNotification('Error loading categories. Please try again.', 'error');
+                    // Fallback to normal navigation
+                    window.location.href = url;
+                });
             }
         });
 
-        // Initialize carousel
-        showSlide(0);
-        startAutoSlide();
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', function(e) {
+            location.reload();
+        });
     }
 
     // Utility Functions

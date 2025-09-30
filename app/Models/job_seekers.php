@@ -31,7 +31,6 @@ class job_seekers extends Model
         'email',
         'phone',
         'address',
-        'age',
         'gender',
         'date_of_birth',
         'profile_image',
@@ -43,6 +42,7 @@ class job_seekers extends Model
         'expected_salary_max' => 'decimal:2',
         'remote_preference' => 'boolean',
         'experience_years' => 'integer',
+        'date_of_birth' => 'date',
     ];
     
     // Relationships
@@ -79,5 +79,14 @@ class job_seekers extends Model
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class, 'seeker_id', 'seeker_id');
+    }
+    
+    // Helper method to get age from date_of_birth
+    public function getAgeAttribute()
+    {
+        if ($this->date_of_birth) {
+            return $this->date_of_birth->age;
+        }
+        return null;
     }
 }

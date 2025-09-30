@@ -11,7 +11,8 @@ class job_applications extends Model
     use HasFactory;
     
     protected $primaryKey = 'application_id';
-    public $incrementing = false;
+    public $incrementing = true; // Changed to true since application_id is auto-increment
+    public $timestamps = false; // Since we're using custom timestamp fields
     
     protected $fillable = [
         'application_id',
@@ -39,6 +40,17 @@ class job_applications extends Model
     public function jobSeeker(): BelongsTo
     {
         return $this->belongsTo(job_seekers::class, 'seeker_id', 'seeker_id');
+    }
+    
+    // Accessors for compatibility
+    public function getStatusAttribute()
+    {
+        return $this->application_status;
+    }
+    
+    public function getResumePathAttribute()
+    {
+        return $this->resume_file;
     }
     
     // Scopes

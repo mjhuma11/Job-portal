@@ -46,6 +46,11 @@ class jobs extends Model
         return $this->hasMany(job_applications::class, 'job_id');
     }
     
+    public function applications(): HasMany
+    {
+        return $this->hasMany(job_applications::class, 'job_id');
+    }
+    
     public function jobViews(): HasMany
     {
         return $this->hasMany(job_views::class, 'job_id');

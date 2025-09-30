@@ -83,7 +83,7 @@ class CategoryController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully!');
+        return redirect()->route('employer.categories.index')->with('success', 'Category created successfully!');
     }
 
     /**
@@ -135,7 +135,7 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully!');
+        return redirect()->route('employer.categories.index')->with('success', 'Category updated successfully!');
     }
 
     /**
@@ -150,6 +150,34 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully!');
+        return redirect()->route('employer.categories.index')->with('success', 'Category deleted successfully!');
+    }
+
+    /**
+     * Display a listing of categories for public view.
+     */
+    public function publicIndex(Request $request): View
+    {
+        $categories = Category::where('status', '1')
+            ->orderBy('name')
+            ->paginate(12);
+
+        return view('categories.index', compact('categories'));
+    }
+
+    /**
+     * Display the specified category with its jobs for public view.
+     */
+    public function publicShow(Category $category): View
+    {
+        // Load jobs for this category
+        $jobs = $category->jobs()
+            ->with('company')
+            ->active()
+            ->notExpired()
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('categories.show', compact('category', 'jobs'));
     }
 }

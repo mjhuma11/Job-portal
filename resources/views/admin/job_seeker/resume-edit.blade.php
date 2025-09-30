@@ -80,10 +80,21 @@
 
                             <!-- Age -->
                             <div class="mt-6">
-                                <label for="experience_years" class="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                                <label for="age" class="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                                <input type="number" id="age" name="age" 
+                                       value="{{ old('age', $jobSeeker->age) }}"
+                                       placeholder="Years old"
+                                       min="16" max="100"
+                                       class="w-full md:w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Years of Experience -->
+                            <div class="mt-6">
+                                <label for="experience_years" class="block text-sm font-medium text-gray-700 mb-2">Years of Experience</label>
                                 <input type="number" id="experience_years" name="experience_years" 
                                        value="{{ old('experience_years', $jobSeeker->experience_years) }}"
-                                       placeholder="Years old"
+                                       placeholder="Years of work experience"
+                                       min="0" max="50"
                                        class="w-full md:w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             </div>
 
@@ -363,20 +374,24 @@
                                     <!-- Skill Name -->
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Skill Name</label>
-                                        <input type="text" name="skills[{{ $index }}][name]" 
-                                               value="{{ old('skills.'.$index.'.name', $skill->skill_name) }}"
+                                        <input type="text" name="skills[{{ $index }}][skill_name]" 
+                                               value="{{ old('skills.'.$index.'.skill_name', $skill->skill_name) }}"
                                                placeholder="Skill name, e.g. HTML"
                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
 
                                     <!-- Proficiency -->
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">% (1-100)</label>
-                                        <input type="number" name="skills[{{ $index }}][proficiency]" 
-                                               value="{{ old('skills.'.$index.'.proficiency', $skill->proficiency) }}"
-                                               placeholder="Skill proficiency, e.g. 90"
-                                               min="1" max="100"
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Proficiency Level (1-5)</label>
+                                        <select name="skills[{{ $index }}][proficiency]" 
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Select proficiency level</option>
+                                            <option value="1" {{ old('skills.'.$index.'.proficiency', $skill->proficiency) == 1 ? 'selected' : '' }}>1 - Beginner</option>
+                                            <option value="2" {{ old('skills.'.$index.'.proficiency', $skill->proficiency) == 2 ? 'selected' : '' }}>2 - Basic</option>
+                                            <option value="3" {{ old('skills.'.$index.'.proficiency', $skill->proficiency) == 3 ? 'selected' : '' }}>3 - Intermediate</option>
+                                            <option value="4" {{ old('skills.'.$index.'.proficiency', $skill->proficiency) == 4 ? 'selected' : '' }}>4 - Advanced</option>
+                                            <option value="5" {{ old('skills.'.$index.'.proficiency', $skill->proficiency) == 5 ? 'selected' : '' }}>5 - Expert</option>
+                                        </select>
                                     </div>
                                 </div>
                                 
@@ -394,18 +409,23 @@
                                     <!-- Skill Name -->
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Skill Name</label>
-                                        <input type="text" name="skills[0][name]" 
+                                        <input type="text" name="skills[0][skill_name]" 
                                                placeholder="Skill name, e.g. HTML"
                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
 
                                     <!-- Proficiency -->
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">% (1-100)</label>
-                                        <input type="number" name="skills[0][proficiency]" 
-                                               placeholder="Skill proficiency, e.g. 90"
-                                               min="1" max="100"
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Proficiency Level (1-5)</label>
+                                        <select name="skills[0][proficiency]" 
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Select proficiency level</option>
+                                            <option value="1">1 - Beginner</option>
+                                            <option value="2">2 - Basic</option>
+                                            <option value="3">3 - Intermediate</option>
+                                            <option value="4">4 - Advanced</option>
+                                            <option value="5">5 - Expert</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -562,15 +582,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Skill Name</label>
-                        <input type="text" name="skills[${skillIndex}][name]" 
+                        <input type="text" name="skills[${skillIndex}][skill_name]" 
                                placeholder="Skill name, e.g. HTML"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">% (1-100)</label>
-                        <input type="number" name="skills[${skillIndex}][proficiency]" 
-                               placeholder="Skill proficiency, e.g. 90" min="1" max="100"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Proficiency Level (1-5)</label>
+                        <select name="skills[${skillIndex}][proficiency]" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select proficiency level</option>
+                            <option value="1">1 - Beginner</option>
+                            <option value="2">2 - Basic</option>
+                            <option value="3">3 - Intermediate</option>
+                            <option value="4">4 - Advanced</option>
+                            <option value="5">5 - Expert</option>
+                        </select>
                     </div>
                 </div>
                 <div class="mt-4">

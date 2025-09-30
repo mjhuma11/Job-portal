@@ -52,6 +52,25 @@
             </div>
         </div>
 
+        <!-- Debug Information (Remove in production) -->
+        @if(config('app.debug'))
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h4 class="text-sm font-medium text-blue-800 mb-2">Debug Info - Form Data (Development Only)</h4>
+            <div class="text-xs text-blue-700">
+                <p><strong>JobSeeker Exists:</strong> {{ $jobSeeker ? 'Yes' : 'No' }}</p>
+                @if($jobSeeker)
+                    <p><strong>JobSeeker ID:</strong> {{ $jobSeeker->seeker_id ?? 'NULL' }}</p>
+                    <p><strong>Name:</strong> {{ $jobSeeker->name ?? 'NULL' }}</p>
+                    <p><strong>Email:</strong> {{ $jobSeeker->email ?? 'NULL' }}</p>
+                    <p><strong>Phone:</strong> {{ $jobSeeker->phone ?? 'NULL' }}</p>
+                    <p><strong>Resume File:</strong> {{ $jobSeeker->resume_file ?? 'NULL' }}</p>
+                @endif
+                <p><strong>User Name:</strong> {{ $user->name }}</p>
+                <p><strong>User Email:</strong> {{ $user->email }}</p>
+            </div>
+        </div>
+        @endif
+
         <!-- Form Container -->
         <form id="profileForm" method="POST" action="{{ route('job_seeker.profile.update') }}" enctype="multipart/form-data">
             @csrf
@@ -69,7 +88,7 @@
                         <div class="flex items-center space-x-6">
                             <div class="shrink-0">
                                 <img id="profile-preview" class="h-16 w-16 object-cover rounded-full" 
-                                     src="{{ ($jobSeeker && $jobSeeker->profile_image) ? asset('storage/' . $jobSeeker->profile_image) : 'https://via.placeholder.com/64x64/e5e7eb/9ca3af?text=Photo' }}" 
+                                     src="{{ ($jobSeeker && $jobSeeker->profile_image) ? asset('storage/' . $jobSeeker->profile_image) : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjRTVFN0VCIi8+CjxwYXRoIGQ9Ik0zMiAzMkMzNi40MTgzIDMyIDQwIDI4LjQxODMgNDAgMjRDNDAgMTkuNTgxNyAzNi40MTgzIDE2IDMyIDE2QzI3LjU4MTcgMTYgMjQgMTkuNTgxNyAyNCAyNEMyNCAyOC40MTgzIDI3LjU4MTcgMzIgMzIgMzJaIiBmaWxsPSIjOUNBM0FGIi8+CjxwYXRoIGQ9Ik0xNiA1NkMxNiA0OC4yNjggMjMuMjY4IDQyIDMyIDQyQzQwLjczMiA0MiA0OCA0OC4yNjggNDggNTZIMTZaIiBmaWxsPSIjOUNBM0FGIi8+Cjwvc3ZnPgo=' }}" 
                                      alt="Profile preview">
                             </div>
                             <label class="block">
@@ -85,7 +104,7 @@
                         <div>
                             <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                             <input type="text" id="full_name" name="full_name" required
-                                   value="{{ old('full_name', ($jobSeeker->name ?? $user->name)) }}"
+                                   value="{{ old('full_name', ($jobSeeker && $jobSeeker->name ? $jobSeeker->name : $user->name)) }}"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
@@ -115,7 +134,7 @@
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
                             <input type="email" id="email" name="email" required
-                                   value="{{ old('email', ($jobSeeker->email ?? $user->email)) }}"
+                                   value="{{ old('email', ($jobSeeker && $jobSeeker->email ? $jobSeeker->email : $user->email)) }}"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
@@ -123,7 +142,7 @@
                         <div>
                             <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
                             <input type="tel" id="phone" name="phone" required
-                                   value="{{ old('phone', ($jobSeeker->phone ?? '')) }}"
+                                   value="{{ old('phone', ($jobSeeker && $jobSeeker->phone ? $jobSeeker->phone : '')) }}"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
@@ -131,7 +150,7 @@
                         <div>
                             <label for="date_of_birth" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
                             <input type="date" id="date_of_birth" name="date_of_birth"
-                                   value="{{ old('date_of_birth', ($jobSeeker->date_of_birth ?? '')) }}"
+                                   value="{{ old('date_of_birth', ($jobSeeker && $jobSeeker->date_of_birth ? $jobSeeker->date_of_birth->format('Y-m-d') : '')) }}"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         </div>
                     </div>
@@ -181,21 +200,72 @@
                     <!-- Resume Upload -->
                     <div class="mt-6">
                         <label for="resume_file" class="block text-sm font-medium text-gray-700 mb-2">Resume File (PDF/DOC)</label>
+                        
+                        @if($jobSeeker && $jobSeeker->resume_file)
+                            <!-- Current Resume Display -->
+                            <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <svg class="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        <div>
+                                            <p class="text-sm font-medium text-blue-900">Current Resume</p>
+                                            <p class="text-xs text-blue-700">{{ basename($jobSeeker->resume_file) }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <a href="{{ asset('storage/' . $jobSeeker->resume_file) }}" target="_blank" 
+                                           class="inline-flex items-center px-3 py-1 border border-blue-300 text-xs font-medium rounded text-blue-700 bg-white hover:bg-blue-50">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            View
+                                        </a>
+                                        <a href="{{ asset('storage/' . $jobSeeker->resume_file) }}" download 
+                                           class="inline-flex items-center px-3 py-1 border border-green-300 text-xs font-medium rounded text-green-700 bg-white hover:bg-green-50">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                            Download
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Upload New Resume -->
                         <div class="flex items-center justify-center w-full">
-                            <label for="resume_file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <label for="resume_file" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors duration-200" id="resume-upload-area">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6" id="upload-content">
                                     <svg class="w-8 h-8 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                     </svg>
-                                    <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                                    <p class="mb-2 text-sm text-gray-500">
+                                        <span class="font-semibold">{{ $jobSeeker && $jobSeeker->resume_file ? 'Upload new resume' : 'Click to upload' }}</span> 
+                                        or drag and drop
+                                    </p>
                                     <p class="text-xs text-gray-500">PDF, DOC, DOCX (MAX. 5MB)</p>
                                 </div>
                                 <input id="resume_file" name="resume_file" type="file" class="hidden" accept=".pdf,.doc,.docx" />
                             </label>
                         </div>
-                        @if($jobSeeker && $jobSeeker->resume_file)
-                            <p class="mt-2 text-sm text-gray-600">Current file: {{ basename($jobSeeker->resume_file) }}</p>
-                        @endif
+                        
+                        <!-- File Preview -->
+                        <div id="file-preview" class="mt-3 hidden">
+                            <div class="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span id="file-name" class="text-sm text-green-800 font-medium"></span>
+                                <button type="button" id="remove-file" class="ml-auto text-green-600 hover:text-green-800">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Navigation -->
@@ -523,11 +593,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Special validation for date fields
+        const dateFields = tabContent.querySelectorAll('input[type="date"]');
+        dateFields.forEach(field => {
+            if (field.value && !isValidDate(field.value)) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+
         if (!isValid) {
-            alert('Please fill in all required fields before proceeding.');
+            alert('Please fill in all required fields correctly before proceeding.');
         }
 
         return isValid;
+    }
+
+    // Date validation helper
+    function isValidDate(dateString) {
+        if (!dateString) return true; // Empty dates are allowed
+        const date = new Date(dateString);
+        return date instanceof Date && !isNaN(date);
     }
 
     // Save tab data function (for AJAX if needed)
@@ -567,6 +655,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 profilePreview.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
+    });
+
+    // Resume file upload handling
+    const resumeFileInput = document.getElementById('resume_file');
+    const resumeUploadArea = document.getElementById('resume-upload-area');
+    const filePreview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+    const removeFileBtn = document.getElementById('remove-file');
+    const uploadContent = document.getElementById('upload-content');
+
+    // Handle file selection
+    resumeFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please select a valid file type (PDF, DOC, DOCX)');
+                this.value = '';
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                this.value = '';
+                return;
+            }
+
+            // Show file preview
+            fileName.textContent = file.name;
+            filePreview.classList.remove('hidden');
+            
+            // Update upload area appearance
+            resumeUploadArea.classList.add('border-green-300', 'bg-green-50');
+            resumeUploadArea.classList.remove('border-gray-300', 'bg-gray-50');
+        }
+    });
+
+    // Handle file removal
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            resumeFileInput.value = '';
+            filePreview.classList.add('hidden');
+            resumeUploadArea.classList.remove('border-green-300', 'bg-green-50');
+            resumeUploadArea.classList.add('border-gray-300', 'bg-gray-50');
+        });
+    }
+
+    // Drag and drop functionality
+    resumeUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('border-blue-400', 'bg-blue-50');
+    });
+
+    resumeUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-blue-400', 'bg-blue-50');
+    });
+
+    resumeUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('border-blue-400', 'bg-blue-50');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            resumeFileInput.files = files;
+            resumeFileInput.dispatchEvent(new Event('change'));
         }
     });
 
@@ -849,6 +1006,36 @@ document.addEventListener('DOMContentLoaded', function() {
             endDateInput.disabled = true;
             endDateInput.classList.add('bg-gray-100');
         }
+    }
+
+    // Form submission handler
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            // Clean up date fields before submission
+            const dateFields = this.querySelectorAll('input[type="date"]');
+            dateFields.forEach(field => {
+                if (field.value && !isValidDate(field.value)) {
+                    field.value = ''; // Clear invalid dates
+                }
+            });
+
+            // Validate all tabs
+            let allValid = true;
+            const tabNames = ['basic', 'education', 'skills', 'experience', 'projects'];
+            
+            tabNames.forEach(tabName => {
+                if (!validateTab(tabName)) {
+                    allValid = false;
+                }
+            });
+
+            if (!allValid) {
+                e.preventDefault();
+                alert('Please fix all validation errors before submitting.');
+                return false;
+            }
+        });
     }
 
     // Initialize with one entry for each section

@@ -7,9 +7,67 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
+// Test route to check if tables exist
+Route::get('/test-tables', function () {
+    $tables = [
+        'employer_notifications' => Schema::hasTable('employer_notifications'),
+        'employer_messages' => Schema::hasTable('employer_messages'),
+        'interviews' => Schema::hasTable('interviews'),
+        'job_seekers' => Schema::hasTable('job_seekers'),
+        'jobs' => Schema::hasTable('jobs'),
+        'companies' => Schema::hasTable('companies')
+    ];
+    
+    return response()->json($tables);
+});
+
+// Simple test route for home page
+Route::get('/test-home', function () {
+    return response()->json(['message' => 'Home route is working']);
+});
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Public Categories Routes
+Route::get('/categories', [CategoryController::class, 'publicIndex'])->name('categories.index');
+Route::get('/categories/{category:slug}', [CategoryController::class, 'publicShow'])->name('categories.show');
+
+// Public Jobs Routes
+Route::prefix('jobs')->name('jobs.')->group(function () {
+    Route::get('/', function () {
+        return view('jobs.index');
+    })->name('index');
+    Route::get('/{job}', function ($job) {
+        // In a real application, you would fetch the job from the database
+        // For now, we'll just pass a dummy job object
+        $dummyJob = (object) [
+            'id' => $job,
+            'job_title' => 'Senior Frontend Developer',
+            'category' => 'Technology',
+            'location' => 'San Francisco, CA',
+            'salary' => '$90,000 - $120,000',
+            'job_type' => 'full-time',
+            'experience' => '5+ years',
+            'application_deadline' => '2025-12-31',
+            'description' => 'We are looking for a talented Senior Frontend Developer to join our team. You will be responsible for developing user-facing web applications using modern JavaScript frameworks.',
+            'requirements' => "• Bachelor's degree in Computer Science or related field\n• 5+ years of experience in frontend development\n• Proficiency in React, Vue.js, or Angular\n• Strong knowledge of HTML, CSS, and JavaScript\n• Experience with RESTful APIs\n• Familiarity with testing frameworks",
+            'responsibilities' => "• Develop and maintain user-facing web applications\n• Collaborate with UX/UI designers to implement design mockups\n• Optimize applications for maximum speed and scalability\n• Participate in code reviews and contribute to team knowledge sharing\n• Troubleshoot and debug issues\n• Stay up-to-date with the latest frontend technologies",
+            'benefits' => "• Competitive salary and equity package\n• Comprehensive health, dental, and vision insurance\n• Flexible work hours and remote work options\n• Professional development budget\n• Unlimited paid time off\n• Catered meals and snacks",
+            'created_at' => now(),
+            'updated_at' => now(),
+            'company' => (object) [
+                'name' => 'Tech Innovations Inc.',
+                'industry' => 'Technology',
+                'description' => 'Tech Innovations Inc. is a leading technology company focused on creating innovative solutions for businesses worldwide.'
+            ]
+        ];
+        return view('jobs.show', compact('dummyJob'));
+    })->name('show');
+});
 
 // Test route to check jobs
 Route::get('/test-jobs', function () {
@@ -199,9 +257,10 @@ Route::get('/admin/dashboard', function () {
 
 // Job Seeker Routes - accessible to job seekers and admins
 Route::prefix('job-seeker')->name('job_seeker.')->middleware(['auth', 'jobseeker'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.job_seeker.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [JobSeekersController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard/data', [JobSeekersController::class, 'getDashboardData'])->name('dashboard.data');
+    Route::post('/notifications/{notification}/read', [JobSeekersController::class, 'markNotificationRead'])->name('notifications.read');
+    Route::post('/messages/{message}/read', [JobSeekersController::class, 'markMessageRead'])->name('messages.read');
     
     Route::get('/profile', [JobSeekersController::class, 'showProfile'])->name('profile');
     Route::get('/profile/edit', [JobSeekersController::class, 'editProfileTabs'])->name('profile.edit');
@@ -222,6 +281,15 @@ Route::prefix('job-seeker')->name('job_seeker.')->middleware(['auth', 'jobseeker
     Route::get('/applications', [JobSeekersController::class, 'applications'])->name('applications');
     Route::get('/jobs/{job}/apply', [JobSeekersController::class, 'applyForJob'])->name('jobs.apply');
     Route::post('/jobs/{job}/apply', [JobSeekersController::class, 'submitApplication'])->name('jobs.apply.submit')->middleware('apply.check');
+    
+    // Test route for debugging
+    Route::get('/test-profile-data', [JobSeekersController::class, 'testProfileData'])->name('test.profile.data');
+    
+    // Resume viewing routes
+    Route::get('/resume/view', [JobSeekersController::class, 'viewResume'])->name('resume.view');
+    Route::get('/resume/download', [JobSeekersController::class, 'downloadResume'])->name('resume.download');
+    Route::get('/resume/serve/{filename}', [JobSeekersController::class, 'serveResume'])->name('resume.serve');
+    Route::get('/test-resume-files', [JobSeekersController::class, 'testResumeFiles'])->name('test.resume.files');
     
     // Other job seeker routes
     Route::get('/saved-jobs', [JobSeekersController::class, 'savedJobs'])->name('saved_jobs');
@@ -245,6 +313,13 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'employer'])->
     Route::get('/applications', [EmployerController::class, 'applications'])->name('applications.index');
     Route::get('/applications/{application}', [EmployerController::class, 'showApplication'])->name('applications.show');
     Route::post('/applications/{application}/status', [EmployerController::class, 'updateStatus'])->name('applications.update.status');
+    
+    // New application management routes
+    Route::get('/applications/{application}/download-cv', [EmployerController::class, 'downloadCV'])->name('applications.download.cv');
+    Route::post('/applications/{application}/send-alert', [EmployerController::class, 'sendAlert'])->name('applications.send.alert');
+    Route::post('/applications/{application}/send-message', [EmployerController::class, 'sendMessage'])->name('applications.send.message');
+    Route::post('/applications/{application}/schedule-interview', [EmployerController::class, 'scheduleInterview'])->name('applications.schedule.interview');
+    Route::post('/applications/{application}/add-notes', [EmployerController::class, 'addNotes'])->name('applications.add.notes');
     
     Route::get('/shortlisted', [EmployerController::class, 'shortlisted'])->name('shortlisted');
     

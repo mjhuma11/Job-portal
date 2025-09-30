@@ -13,8 +13,8 @@
     --bg-light: #f8f9fa;
     --white: #ffffff;
     --border-radius: 8px;
-    --shadow: 0 2px 4px #221e1e1a;
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --shadow: 0 2px 4px #1615151a;
+    --shadow-lg: 0 10px 25px #00000026;
 }
 
 /* Button Styles */
@@ -225,4 +225,340 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--secondary-color);
+}/* 
+Categories Pagination Styles */
+.categories-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+}
+
+.categories-pagination a,
+.categories-pagination span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.categories-pagination a {
+    border: 1px solid #d1d5db;
+    color: var(--text-dark);
+    background-color: white;
+}
+
+.categories-pagination a:hover {
+    background-color: var(--bg-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.categories-pagination .current-page {
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.categories-pagination .disabled {
+    background-color: var(--bg-light);
+    color: #9ca3af;
+    cursor: not-allowed;
+    border: 1px solid #e5e7eb;
+}
+
+/* Categories Grid Loading State */
+.categories-loading {
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+/* Categories Card Hover Effects */
+.category-card {
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.category-card:hover .category-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Responsive Categories Grid */
+@media (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .categories-pagination {
+        gap: 0.25rem;
+    }
+    
+    .categories-pagination a,
+    .categories-pagination span {
+        width: 2rem;
+        height: 2rem;
+        font-size: 0.875rem;
+    }
+}/* Resu
+me Upload Enhancements */
+.resume-upload-area {
+    transition: all 0.3s ease;
+}
+
+.resume-upload-area:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(6, 175, 170, 0.05);
+}
+
+.resume-upload-area.drag-over {
+    border-color: var(--accent-color);
+    background-color: rgba(243, 156, 18, 0.1);
+    transform: scale(1.02);
+}
+
+.resume-file-preview {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Resume Status Indicator */
+.resume-status-indicator {
+    position: relative;
+    overflow: hidden;
+}
+
+.resume-status-indicator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s;
+}
+
+.resume-status-indicator:hover::before {
+    left: 100%;
+}
+
+/* File Type Icons */
+.file-type-pdf {
+    color: #dc2626;
+}
+
+.file-type-doc {
+    color: #2563eb;
+}
+
+.file-type-docx {
+    color: #2563eb;
+}
+
+/* Resume Card Hover Effects */
+.resume-card {
+    transition: all 0.3s ease;
+}
+
+.resume-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}/* Prof
+ile Completion Enhancements */
+.profile-completion-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-completion-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.profile-completion-card:hover::before {
+    left: 100%;
+}
+
+.completion-progress-bar {
+    transition: width 1s ease-in-out;
+    animation: progressFill 2s ease-in-out;
+}
+
+@keyframes progressFill {
+    from {
+        width: 0%;
+    }
+    to {
+        width: var(--progress-width);
+    }
+}
+
+.completion-item {
+    transition: all 0.3s ease;
+}
+
+.completion-item:hover {
+    transform: scale(1.05);
+}
+
+.completion-check {
+    animation: checkBounce 0.6s ease-in-out;
+}
+
+@keyframes checkBounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0,0,0);
+    }
+    40%, 43% {
+        transform: translate3d(0, -8px, 0);
+    }
+    70% {
+        transform: translate3d(0, -4px, 0);
+    }
+    90% {
+        transform: translate3d(0, -2px, 0);
+    }
+}
+
+.completion-cross {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-2px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(2px);
+    }
+}
+
+/* Profile Card Enhancements */
+.profile-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.profile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-left-color: var(--primary-color);
+}
+
+.profile-section-header {
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.profile-section-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    border-radius: 1px;
+}
+
+/* Status Badge Animations */
+.status-badge {
+    position: relative;
+    overflow: hidden;
+}
+
+.status-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.status-badge:hover::before {
+    left: 100%;
+}
+
+/* Skill Progress Bar Enhancements */
+.skill-progress {
+    position: relative;
+    overflow: hidden;
+}
+
+.skill-progress-fill {
+    transition: width 1.5s ease-in-out;
+    position: relative;
+}
+
+.skill-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, .2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, .2) 50%,
+        rgba(255, 255, 255, .2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 50px 50px;
+    animation: move 2s linear infinite;
+}
+
+@keyframes move {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 50px 50px;
+    }
 }

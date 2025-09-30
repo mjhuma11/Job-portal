@@ -2,16 +2,16 @@
 
 @section('title', 'CareerBridge - Find Your Career to Make a Better Life')
 
-@php
-use Illuminate\Support\Str;
-@endphp
-
 @section('content')
-    <!-- Hero Section -->
-    <section class="hero-section py-8 relative overflow-hidden">
-        <!-- Static Background Image -->
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" 
-             style="background-image: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.8)), url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1920&h=1080&fit=crop');"></div>
+    <!-- Hero Section with Carousel -->
+    <section class="hero-section py-8 relative overflow-hidden" id="heroSection">
+        <!-- Dynamic Background Images -->
+        <div class="absolute inset-0 transition-opacity duration-1000 opacity-100 bg-cover bg-center bg-no-repeat" 
+             id="bg1" style="background-image: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.8)), url('https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1920&h=1080&fit=crop');"></div>
+        <div class="absolute inset-0 transition-opacity duration-1000 opacity-0 bg-cover bg-center bg-no-repeat" 
+             id="bg2" style="background-image: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.8)), url('https://images.unsplash.com/photo-1560472355-536de3962603?w=1920&h=1080&fit=crop');"></div>
+        <div class="absolute inset-0 transition-opacity duration-1000 opacity-0 bg-cover bg-center bg-no-repeat" 
+             id="bg3" style="background-image: linear-gradient(rgba(44, 62, 80, 0.8), rgba(44, 62, 80, 0.8)), url('https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1920&h=1080&fit=crop');"></div>
         
         <!-- Decorative Elements -->
         <div class="absolute inset-0 opacity-10">
@@ -24,12 +24,12 @@ use Illuminate\Support\Str;
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center h-full">
                 <!-- Hero Content -->
                 <div class="hero-content space-y-4">
-                    <div>
-                        <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-white">
+                    <div class="carousel-content">
+                        <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-white transition-all duration-500" id="heroTitle">
                             Find Your Career to 
                             <span style="color: var(--accent-color);">Make a Better Life</span>
                         </h1>
-                        <p class="text-base lg:text-lg opacity-90" style="color: var(--bg-light);">
+                        <p class="text-base lg:text-lg opacity-90 transition-all duration-500" style="color: var(--bg-light);" id="heroDescription">
                             Discover thousands of job opportunities with all the information you need. 
                             Connect with top employers and take the next step in your career journey.
                         </p>
@@ -37,10 +37,11 @@ use Illuminate\Support\Str;
                     
                     <!-- Action Buttons -->
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <button class="btn-accent px-5 py-2.5 rounded-lg font-semibold text-white transition-all duration-300 hover:shadow-lg hover:transform hover:scale-105">
+                        <button class="btn-accent px-5 py-2.5 rounded-lg font-semibold text-white transition-all duration-300 hover:shadow-lg hover:transform hover:scale-105" id="primaryBtn">
                             Find Jobs
                         </button>
-                        <button class="border-2 border-white text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-white hover:text-blue-900 transition-all duration-300">
+                        <button class="border-2 border-white text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-white transition-all duration-300" 
+                                style="hover:color: var(--primary-color);" id="secondaryBtn">
                             Upload Resume
                         </button>
                     </div>
@@ -48,16 +49,16 @@ use Illuminate\Support\Str;
                     <!-- Stats -->
                     <div class="grid grid-cols-3 gap-4 pt-4">
                         <div class="text-center">
-                            <div class="text-xl lg:text-2xl font-bold text-white">500</div>
-                            <div class="text-xs opacity-80" style="color: var(--bg-light);">Companies</div>
+                            <div class="text-xl lg:text-2xl font-bold text-white" id="stat1Number">500</div>
+                            <div class="text-xs opacity-80" style="color: var(--bg-light);" id="stat1Label">Companies</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-xl lg:text-2xl font-bold text-white">98%</div>
-                            <div class="text-xs opacity-80" style="color: var(--bg-light);">Success Rate</div>
+                            <div class="text-xl lg:text-2xl font-bold text-white" id="stat2Number">98%</div>
+                            <div class="text-xs opacity-80" style="color: var(--bg-light);" id="stat2Label">Success Rate</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-xl lg:text-2xl font-bold text-white">24/7</div>
-                            <div class="text-xs opacity-80" style="color: var(--bg-light);">Support</div>
+                            <div class="text-xl lg:text-2xl font-bold text-white" id="stat3Number">24/7</div>
+                            <div class="text-xs opacity-80" style="color: var(--bg-light);" id="stat3Label">Support</div>
                         </div>
                     </div>
                 </div>
@@ -66,6 +67,31 @@ use Illuminate\Support\Str;
                 <div class="hero-image">
                     <img src="{{asset('assets/images/corporategirl.jpg')}}" alt="Hero Image" class="w-full h-full object-cover object-center rounded-lg">
                 </div>
+            </div>
+
+
+              
+            <!-- Carousel Navigation -->
+            <div class="absolute top-1/2 left-4 transform -translate-y-1/2">
+                <button id="prevBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm rounded-full p-2 transition-all duration-300">
+                    <!-- <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg> -->
+                </button>
+            </div>
+            <div class="absolute top-1/2 right-4 transform -translate-y-1/2">
+                <button id="nextBtn" class="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm rounded-full p-2 transition-all duration-300">
+                    <!-- <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg> -->
+                </button>
+            </div>
+
+            <!-- Carousel Indicators -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                <button class="carousel-indicator active w-2.5 h-2.5 rounded-full transition-all duration-300" style="background-color: var(--accent-color);" data-slide="0"></button>
+                <button class="carousel-indicator w-2.5 h-2.5 rounded-full bg-white bg-opacity-50 hover:bg-opacity-75 transition-all duration-300" data-slide="1"></button>
+                <button class="carousel-indicator w-2.5 h-2.5 rounded-full bg-white bg-opacity-50 hover:bg-opacity-75 transition-all duration-300" data-slide="2"></button>
             </div>
         </div>
     </section>
@@ -77,10 +103,12 @@ use Illuminate\Support\Str;
                 <form id="jobSearchForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <input type="text" name="keywords" placeholder="Job title, keywords..." 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300">
+                               class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300" 
+                               style="border-color: #ddd; border-radius: var(--border-radius); focus:ring-color: var(--primary-color);">
                     </div>
                     <div>
-                        <select name="location" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300">
+                        <select name="location" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300" 
+                                style="border-color: #ddd; border-radius: var(--border-radius); focus:ring-color: var(--primary-color);">
                             <option value="">All Locations</option>
                             <option>New York</option>
                             <option>San Francisco</option>
@@ -89,7 +117,8 @@ use Illuminate\Support\Str;
                         </select>
                     </div>
                     <div>
-                        <select name="category" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300">
+                        <select name="category" class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300" 
+                                style="border-color: #ddd; border-radius: var(--border-radius); focus:ring-color: var(--primary-color);">
                             <option value="">All Categories</option>
                             <option>Technology</option>
                             <option>Marketing</option>
@@ -127,13 +156,13 @@ use Illuminate\Support\Str;
                 <p style="color: var(--text-light);" class="max-w-2xl mx-auto">Find the career you deserve in your preferred industry</p>
             </div>
 
-            <div class="categories-grid grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-                @forelse($categories as $category)
-                <a href="{{ route('categories.show', $category->slug ?? Str::slug($category->name)) }}" class="category-card relative bg-white rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer block" 
-                   style="border-radius: var(--border-radius); box-shadow: var(--shadow);">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                @foreach($categories as $category)
+                <div class="relative bg-white rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 group cursor-pointer" 
+                     style="border-radius: var(--border-radius); box-shadow: var(--shadow);">
                     <div class="relative h-48 bg-cover bg-center" 
-                         style="background-image: url('{{ $category->image ? (str_starts_with($category->image, 'http') ? $category->image : asset($category->image)) : 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop' }}');">
-                        <div class="category-overlay absolute inset-0 bg-black bg-opacity-40 transition-all duration-300"></div>
+                         style="background-image: url('{{ $category->image ? asset($category->image) : 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop' }}');">
+                        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
                         <div class="absolute top-4 right-4">
                             <div class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
                                 {{ $category->jobs->count() }}
@@ -143,73 +172,10 @@ use Illuminate\Support\Str;
                             <h3 class="font-semibold text-lg mb-1">{{ $category->name }}</h3>
                             <p class="text-sm opacity-90">{{ $category->description ?? 'Jobs in this category' }}</p>
                         </div>
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-3">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                </svg>
-                            </div>
-                        </div>
                     </div>
-                </a>
-                @empty
-                <div class="col-span-4 text-center py-12">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No categories available</h3>
-                    <p class="text-gray-600">Categories will appear here once they are added.</p>
                 </div>
-                @endforelse
-            </div>
-
-            <!-- Categories Pagination -->
-            @if($categories->hasPages())
-            <div class="categories-pagination">
-                {{-- Previous Page Link --}}
-                @if ($categories->onFirstPage())
-                    <span class="disabled">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </span>
-                @else
-                    <a href="{{ $categories->previousPageUrl() }}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </a>
-                @endif
-
-                {{-- Pagination Elements --}}
-                @foreach ($categories->getUrlRange(1, $categories->lastPage()) as $page => $url)
-                    @if ($page == $categories->currentPage())
-                        <span class="current-page">{{ $page }}</span>
-                    @else
-                        <a href="{{ $url }}">{{ $page }}</a>
-                    @endif
                 @endforeach
-
-                {{-- Next Page Link --}}
-                @if ($categories->hasMorePages())
-                    <a href="{{ $categories->nextPageUrl() }}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </a>
-                @else
-                    <span class="disabled">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </span>
-                @endif
             </div>
-
-            <!-- Categories Info -->
-            <div class="text-center mt-4">
-                <p class="text-sm" style="color: var(--text-light);">
-                    Showing {{ $categories->firstItem() ?? 0 }} to {{ $categories->lastItem() ?? 0 }} of {{ $categories->total() }} categories
-                </p>
-            </div>
-            @endif
         </div>
     </section>
 
@@ -607,298 +573,3 @@ use Illuminate\Support\Str;
                     <!-- Features List -->
                     <div class="space-y-4 mb-8">
                         <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">Unlimited Listings</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">Contact With Agent</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">Contact With Agent</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">7×24 Fully Support</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">100GB Space</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Register Button -->
-                    <button class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 hover:bg-blue-700" 
-                            style="border-radius: var(--border-radius);">
-                        Register Now
-                    </button>
-                </div>
-
-                <!-- Premium Pack -->
-                <div class="bg-white rounded-xl p-8 transition-all duration-300 hover:shadow-lg hover:transform hover:scale-105" 
-                     style="box-shadow: var(--shadow); border-radius: var(--border-radius);">
-                    <div class="text-center mb-8">
-                        <h3 class="text-xl font-bold mb-4" style="color: var(--text-dark);">PREMIUM PACK</h3>
-                        <div class="mb-2">
-                            <span class="text-4xl font-bold" style="color: var(--text-dark);">tk50</span>
-                            <span class="text-lg" style="color: var(--text-light);">per month</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Features List -->
-                    <div class="space-y-4 mb-8">
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">Unlimited Listings</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">Contact With Agent</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">Contact With Agent</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">7×24 Fully Support</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-5 h-5 rounded-sm flex items-center justify-center mr-3" style="background-color: #4f46e5;">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                            <span style="color: var(--text-dark);">Unlimited Space</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Register Button -->
-                    <button class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-300 hover:bg-blue-700" 
-                            style="border-radius: var(--border-radius);">
-                        Register Now
-                    </button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="py-16" style="background-color: var(--white);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold mb-4" style="color: var(--text-dark);">What Our Clients Say</h2>
-                <p style="color: var(--text-light);" class="max-w-2xl mx-auto">Discover why thousands of professionals trust CareerBridge for their career journey</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Testimonial 1 -->
-                <div class="bg-white rounded-xl p-6 border" style="box-shadow: var(--shadow); border-radius: var(--border-radius); border-color: #e5e7eb;">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                            <span class="font-bold" style="color: var(--primary-color);">JD</span>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold" style="color: var(--text-dark);">John Doe</h4>
-                            <p class="text-sm" style="color: var(--text-light);">Software Engineer</p>
-                        </div>
-                    </div>
-                    <p class="text-sm mb-4" style="color: var(--text-light);">"CareerBridge helped me find my dream job in just 2 weeks. The platform is intuitive and the job matches were incredibly accurate."</p>
-                    <div class="flex text-yellow-400">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                    </div>
-                </div>
-
-                <!-- Testimonial 2 -->
-                <div class="bg-white rounded-xl p-6 border" style="box-shadow: var(--shadow); border-radius: var(--border-radius); border-color: #e5e7eb;">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                            <span class="font-bold" style="color: var(--primary-color);">SJ</span>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold" style="color: var(--text-dark);">Sarah Johnson</h4>
-                            <p class="text-sm" style="color: var(--text-light);">Marketing Director</p>
-                        </div>
-                    </div>
-                    <p class="text-sm mb-4" style="color: var(--text-light);">"As an employer, I've found exceptional candidates through CareerBridge. The platform's filtering system saved us countless hours in the hiring process."</p>
-                    <div class="flex text-yellow-400">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                    </div>
-                </div>
-
-                <!-- Testimonial 3 -->
-                <div class="bg-white rounded-xl p-6 border" style="box-shadow: var(--shadow); border-radius: var(--border-radius); border-color: #e5e7eb;">
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-                            <span class="font-bold" style="color: var(--primary-color);">MR</span>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold" style="color: var(--text-dark);">Michael Roberts</h4>
-                            <p class="text-sm" style="color: var(--text-light);">HR Manager</p>
-                        </div>
-                    </div>
-                    <p class="text-sm mb-4" style="color: var(--text-light);">"The analytics dashboard gives us incredible insights into our hiring process. We've reduced our time-to-hire by 40% since using CareerBridge."</p>
-                    <div class="flex text-yellow-400">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Newsletter Section -->
-    <section class="py-16" style="background-color: var(--primary-color);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl font-bold text-white mb-4">Stay Updated with Job Alerts</h2>
-            <p class="text-xl mb-8" style="color: var(--bg-light);">Get notified about new job opportunities that match your interests</p>
-            <form class="max-w-2xl mx-auto flex flex-col sm:flex-row gap-4">
-                <input type="email" placeholder="Enter your email address" 
-                       class="flex-1 px-6 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300" 
-                       style="border-radius: var(--border-radius);">
-                <button type="submit" class="bg-white px-8 py-4 rounded-lg font-semibold transition-all duration-300 hover:shadow-lg hover:transform hover:scale-105" 
-                        style="color: var(--primary-color); border-radius: var(--border-radius);">
-                    Subscribe
-                </button>
-            </form>
-        </div>
-    </section>
-@endsection
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const jobSearchForm = document.getElementById('jobSearchForm');
-    const jobsContainer = document.getElementById('jobsContainer');
-    
-    if (jobSearchForm) {
-        jobSearchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form data
-            const formData = new FormData(jobSearchForm);
-            const searchParams = new URLSearchParams();
-            
-            for (const [key, value] of formData.entries()) {
-                if (value) {
-                    searchParams.append(key, value);
-                }
-            }
-            
-            // Add loading state
-            const submitButton = jobSearchForm.querySelector('button[type="submit"]');
-            const originalText = submitButton.innerHTML;
-            submitButton.innerHTML = 'Searching...';
-            submitButton.disabled = true;
-            
-            // Make AJAX request
-            fetch('{{ route('home') }}?' + searchParams.toString(), {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(response => response.text())
-            .then(html => {
-                // Create a temporary element to parse the HTML
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Extract the jobs container from the response
-                const newJobsContainer = doc.getElementById('jobsContainer');
-                
-                if (newJobsContainer) {
-                    jobsContainer.innerHTML = newJobsContainer.innerHTML;
-                }
-                
-                // Restore button state
-                submitButton.innerHTML = originalText;
-                submitButton.disabled = false;
-            })
-            .catch(error => {
-                console.error('Error searching jobs:', error);
-                
-                // Restore button state
-                submitButton.innerHTML = originalText;
-                submitButton.disabled = false;
-            });
-        });
-    }
-});
-</script>

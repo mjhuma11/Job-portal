@@ -4,7 +4,13 @@
     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-3xl font-bold text-white">523</p>
+                <p class="text-3xl font-bold text-white">
+                    @if(isset($stats))
+                        {{ $stats['total_applications'] ?? 0 }}
+                    @else
+                        0
+                    @endif
+                </p>
                 <p class="text-green-100 font-medium">Applied Jobs</p>
             </div>
             <div class="w-14 h-14 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
@@ -27,7 +33,13 @@
     <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-3xl font-bold text-white">89</p>
+                <p class="text-3xl font-bold text-white">
+                    @if(isset($stats))
+                        {{ $stats['shortlisted'] ?? 0 }}
+                    @else
+                        0
+                    @endif
+                </p>
                 <p class="text-amber-100 font-medium">Saved Jobs</p>
             </div>
             <div class="w-14 h-14 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
@@ -50,7 +62,13 @@
     <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-3xl font-bold text-white">1,247</p>
+                <p class="text-3xl font-bold text-white">
+                    @if(isset($stats))
+                        {{ $stats['total_applications'] ?? 0 }}
+                    @else
+                        0
+                    @endif
+                </p>
                 <p class="text-red-100 font-medium">Viewed Jobs</p>
             </div>
             <div class="w-14 h-14 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
@@ -74,7 +92,13 @@
     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-xl p-6 transform transition-all duration-300 hover:scale-105">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-3xl font-bold text-white">42</p>
+                <p class="text-3xl font-bold text-white">
+                    @if(isset($stats))
+                        {{ $stats['unread_notifications'] ?? 0 }}
+                    @else
+                        0
+                    @endif
+                </p>
                 <p class="text-blue-100 font-medium">Total Reviews</p>
             </div>
             <div class="w-14 h-14 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">

@@ -372,11 +372,17 @@ document.getElementById('createCompanyForm').addEventListener('submit', function
         console.log('Response status:', response.status);
         console.log('Response headers:', response.headers);
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        } else {
+            // If not JSON, it's probably an HTML error page
+            throw new Error('Server returned an unexpected response. Please refresh the page and try again.');
         }
-        
-        return response.json();
     })
     .then(data => {
         console.log('Response data:', data);
@@ -429,7 +435,7 @@ document.getElementById('createCompanyForm').addEventListener('submit', function
         console.error('Error:', error);
         Swal.fire({
             title: 'Error!',
-            text: 'Something went wrong. Please try again.',
+            text: error.message || 'Something went wrong. Please try again.',
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#EF4444'

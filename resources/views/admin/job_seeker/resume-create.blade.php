@@ -340,18 +340,23 @@
                                     <!-- Skill Name -->
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Skill Name</label>
-                                        <input type="text" name="skills[0][name]" 
+                                        <input type="text" name="skills[0][skill_name]" 
                                                placeholder="Skill name, e.g. HTML"
                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     </div>
 
                                     <!-- Proficiency -->
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">% (1-100)</label>
-                                        <input type="number" name="skills[0][proficiency]" 
-                                               placeholder="Skill proficiency, e.g. 90"
-                                               min="1" max="100"
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Proficiency Level (1-5)</label>
+                                        <select name="skills[0][proficiency]" 
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Select proficiency level</option>
+                                            <option value="1">1 - Beginner</option>
+                                            <option value="2">2 - Basic</option>
+                                            <option value="3">3 - Intermediate</option>
+                                            <option value="4">4 - Advanced</option>
+                                            <option value="5">5 - Expert</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -508,15 +513,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Skill Name</label>
-                        <input type="text" name="skills[${skillIndex}][name]" 
+                        <input type="text" name="skills[${skillIndex}][skill_name]" 
                                placeholder="Skill name, e.g. HTML"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">% (1-100)</label>
-                        <input type="number" name="skills[${skillIndex}][proficiency]" 
-                               placeholder="Skill proficiency, e.g. 90" min="1" max="100"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Proficiency Level (1-5)</label>
+                        <select name="skills[${skillIndex}][proficiency]" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select proficiency level</option>
+                            <option value="1">1 - Beginner</option>
+                            <option value="2">2 - Basic</option>
+                            <option value="3">3 - Intermediate</option>
+                            <option value="4">4 - Advanced</option>
+                            <option value="5">5 - Expert</option>
+                        </select>
                     </div>
                 </div>
                 <div class="mt-4">

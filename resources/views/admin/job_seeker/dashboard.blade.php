@@ -55,73 +55,85 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return;
+    }
+    
     // Sales Chart
     const ctx = document.getElementById('salesChart');
     if (ctx) {
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                datasets: [{
-                    label: 'Applications',
-                    data: [20, 35, 25, 45, 35, 55, 45],
-                    borderColor: '#06afaa',
-                    backgroundColor: 'rgba(6, 175, 170, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }, {
-                    label: 'Interviews',
-                    data: [15, 25, 35, 30, 45, 35, 50],
-                    borderColor: '#ffae00',
-                    backgroundColor: 'rgba(255, 174, 0, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }, {
-                    label: 'Offers',
-                    data: [5, 10, 15, 20, 25, 20, 30],
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            color: '#172029',
-                            font: {
-                                size: 12
+        try {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Applications',
+                        data: [20, 35, 25, 45, 35, 55, 45],
+                        borderColor: '#06afaa',
+                        backgroundColor: 'rgba(6, 175, 170, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Interviews',
+                        data: [15, 25, 35, 30, 45, 35, 50],
+                        borderColor: '#ffae00',
+                        backgroundColor: 'rgba(255, 174, 0, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Offers',
+                        data: [5, 10, 15, 20, 25, 20, 30],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#172029',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                color: '#586566'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                color: '#586566'
                             }
                         }
                     }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            color: '#586566'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)'
-                        },
-                        ticks: {
-                            color: '#586566'
-                        }
-                    }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error initializing chart:', error);
+        }
+    } else {
+        console.warn('Chart canvas not found');
     }
 });
 </script>

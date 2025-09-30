@@ -11,10 +11,269 @@ use App\Models\work_experience;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class JobSeekersController extends Controller
 {
+    /**
+     * Display the job seeker's dashboard with dynamic content.
+     */
+    public function dashboard(): View|\Illuminate\Http\RedirectResponse
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return redirect()->route('login')->with('error', 'Please login to access your dashboard.');
+            }
+            
+            $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+            
+            if (!$jobSeeker) {
+                // Create a basic jobSeeker record if it doesn't exist
+                $jobSeeker = new job_seekers();
+                $jobSeeker->user_id = $user->id;
+                $jobSeeker->full_name = $user->name ?? 'Job Seeker';
+                $jobSeeker->email = $user->email;
+                $jobSeeker->save();
+            }
+        
+            // Get job applications (with error handling)
+            try {
+                $applications = job_applications::where('seeker_id', $jobSeeker->seeker_id)
+                    ->with(['job.company'])
+                    ->orderBy('applied_at', 'desc')
+                    ->get();
+            } catch (\Exception $e) {
+                $applications = collect(); // Empty collection if there's an error
+            }
+            
+            // Get notifications from employers (with error handling)
+            try {
+                // Check if table exists before querying
+                if (\Schema::hasTable('employer_notifications')) {
+                    $notifications = \DB::table('employer_notifications')
+                        ->where('seeker_id', $jobSeeker->seeker_id)
+                        ->orderBy('created_at', 'desc')
+                        ->limit(10)
+                        ->get();
+                } else {
+                    $notifications = collect();
+                }
+            } catch (\Exception $e) {
+                $notifications = collect(); // Empty collection if table doesn't exist
+            }
+            
+            // Get messages from employers (with error handling)
+            try {
+                // Check if table exists before querying
+                if (\Schema::hasTable('employer_messages')) {
+                    $messages = \DB::table('employer_messages')
+                        ->where('seeker_id', $jobSeeker->seeker_id)
+                        ->orderBy('created_at', 'desc')
+                        ->limit(10)
+                        ->get();
+                } else {
+                    $messages = collect();
+                }
+            } catch (\Exception $e) {
+                $messages = collect(); // Empty collection if table doesn't exist
+            }
+            
+            // Get scheduled interviews (with error handling)
+            try {
+                // Check if table exists before querying
+                if (\Schema::hasTable('interviews')) {
+                    $interviews = \DB::table('interviews')
+                        ->where('seeker_id', $jobSeeker->seeker_id)
+                        ->where('status', 'scheduled')
+                        ->orderBy('interview_date', 'asc')
+                        ->get();
+                } else {
+                    $interviews = collect();
+                }
+            } catch (\Exception $e) {
+                $interviews = collect(); // Empty collection if table doesn't exist
+            }
+        
+            // Calculate statistics
+            $stats = [
+                'total_applications' => $applications->count(),
+                'pending_applications' => $applications->where('application_status', 'pending')->count(),
+                'interview_scheduled' => $applications->where('application_status', 'interview_scheduled')->count(),
+                'shortlisted' => $applications->where('application_status', 'shortlisted')->count(),
+                'hired' => $applications->where('application_status', 'hired')->count(),
+                'rejected' => $applications->where('application_status', 'rejected')->count(),
+                'unread_notifications' => $notifications->where('status', 'pending')->count(),
+                'unread_messages' => $messages->where('status', 'sent')->count(),
+                'upcoming_interviews' => $interviews->count()
+            ];
+            
+            // Get recent job recommendations (jobs in same category as applied jobs)
+            $appliedCategories = $applications->pluck('job.category')->unique()->filter();
+            $recommendedJobs = collect(); // Default to empty collection
+            
+            if ($appliedCategories->isNotEmpty()) {
+                try {
+                    $recommendedJobs = jobs::whereIn('category', $appliedCategories)
+                        ->where('status', 'active')
+                        ->whereNotIn('id', $applications->pluck('job_id'))
+                        ->limit(5)
+                        ->get();
+                } catch (\Exception $e) {
+                    $recommendedJobs = collect();
+                }
+            }
+            
+            return view('admin.job_seeker.dashboard', compact(
+                'jobSeeker', 
+                'applications', 
+                'notifications', 
+                'messages', 
+                'interviews', 
+                'stats', 
+                'recommendedJobs'
+            ));
+            
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Dashboard error: ' . $e->getMessage());
+            
+            // Return a simple error view or redirect
+            return redirect()->route('job_seeker.profile.edit.tabs')
+                ->with('error', 'There was an issue loading your dashboard. Please try again.');
+        }
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markNotificationRead(Request $request, $notificationId)
+    {
+        try {
+            $user = Auth::user();
+            $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+            
+            if (!$jobSeeker) {
+                return response()->json(['success' => false, 'message' => 'Job seeker profile not found'], 404);
+            }
+            
+            \DB::table('employer_notifications')
+                ->where('id', $notificationId)
+                ->where('seeker_id', $jobSeeker->seeker_id)
+                ->update([
+                    'status' => 'sent',
+                    'sent_at' => now()
+                ]);
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
+
+            return redirect()->back()->with('success', 'Notification marked as read.');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            }
+            return redirect()->back()->with('error', 'Failed to mark notification as read.');
+        }
+    }
+
+    /**
+     * Mark message as read
+     */
+    public function markMessageRead(Request $request, $messageId)
+    {
+        try {
+            $user = Auth::user();
+            $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+            
+            if (!$jobSeeker) {
+                return response()->json(['success' => false, 'message' => 'Job seeker profile not found'], 404);
+            }
+            
+            \DB::table('employer_messages')
+                ->where('id', $messageId)
+                ->where('seeker_id', $jobSeeker->seeker_id)
+                ->update([
+                    'status' => 'read',
+                    'read_at' => now()
+                ]);
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true]);
+            }
+
+            return redirect()->back()->with('success', 'Message marked as read.');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()]);
+            }
+            return redirect()->back()->with('error', 'Failed to mark message as read.');
+        }
+    }
+
+    /**
+     * Get dashboard data via AJAX for dynamic updates
+     */
+    public function getDashboardData(Request $request)
+    {
+        $user = Auth::user();
+        $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+        
+        if (!$jobSeeker) {
+            return response()->json(['error' => 'Job seeker profile not found'], 404);
+        }
+        
+        // Get fresh data
+        $notifications = \DB::table('employer_notifications')
+            ->where('seeker_id', $jobSeeker->seeker_id)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        $messages = \DB::table('employer_messages')
+            ->where('seeker_id', $jobSeeker->seeker_id)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+        
+        $interviews = \DB::table('interviews')
+            ->where('seeker_id', $jobSeeker->seeker_id)
+            ->where('status', 'scheduled')
+            ->orderBy('interview_date', 'asc')
+            ->get();
+        
+        $applications = job_applications::where('seeker_id', $jobSeeker->seeker_id)
+            ->with(['job.company'])
+            ->orderBy('applied_at', 'desc')
+            ->get();
+        
+        $stats = [
+            'total_applications' => $applications->count(),
+            'pending_applications' => $applications->where('application_status', 'pending')->count(),
+            'interview_scheduled' => $applications->where('application_status', 'interview_scheduled')->count(),
+            'shortlisted' => $applications->where('application_status', 'shortlisted')->count(),
+            'hired' => $applications->where('application_status', 'hired')->count(),
+            'rejected' => $applications->where('application_status', 'rejected')->count(),
+            'unread_notifications' => $notifications->where('status', 'pending')->count(),
+            'unread_messages' => $messages->where('status', 'sent')->count(),
+            'upcoming_interviews' => $interviews->count()
+        ];
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'notifications' => $notifications,
+                'messages' => $messages,
+                'interviews' => $interviews,
+                'stats' => $stats,
+                'applications' => $applications
+            ]
+        ]);
+    }
+
     /**
      * Display the job seeker's profile.
      */
@@ -22,14 +281,37 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         // If no profile exists, redirect to create profile
         if (!$jobSeeker) {
-            return redirect()->route('job_seeker.profile.edit')
+            return redirect()->route('job_seeker.profile.edit.tabs')
                 ->with('info', 'Please complete your profile to continue.');
         }
-        
-        return view('admin.job_seeker.profile-view', compact('jobSeeker', 'user'));
+
+        // Initialize empty collections
+        $workExperiences = collect();
+        $educations = collect();
+        $skills = collect();
+        $projects = collect();
+
+        // Get existing data
+        $workExperiences = work_experience::where('seeker_id', $jobSeeker->seeker_id)
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        $educations = education::where('user_id', $user->id)
+            ->orderBy('passing_year', 'desc')
+            ->get();
+
+        $skills = SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)
+            ->orderBy('proficiency', 'desc')
+            ->get();
+
+        $projects = \App\Models\Project::where('seeker_id', $jobSeeker->seeker_id)
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        return view('admin.job_seeker.profile-view', compact('jobSeeker', 'user', 'workExperiences', 'educations', 'skills', 'projects'));
     }
 
     /**
@@ -39,7 +321,7 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         return view('admin.job_seeker.profile-edit', compact('jobSeeker', 'user'));
     }
 
@@ -50,23 +332,23 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         // Initialize empty collections
         $workExperiences = collect();
         $educations = collect();
         $skills = collect();
         $projects = collect();
-        
+
         // Get existing data if jobSeeker exists
         if ($jobSeeker) {
             $workExperiences = work_experience::where('seeker_id', $jobSeeker->seeker_id)
                 ->orderBy('start_date', 'desc')
                 ->get();
-                
+
             $educations = education::where('user_id', $user->id)
                 ->orderBy('passing_year', 'desc')
                 ->get();
-                
+
             $skills = SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)
                 ->orderBy('proficiency', 'desc')
                 ->get();
@@ -82,7 +364,7 @@ class JobSeekersController extends Controller
                 'email' => $user->email,
             ]);
         }
-        
+
         return view('admin.job_seeker.profile-edit-tabs', compact('jobSeeker', 'user', 'workExperiences', 'educations', 'skills', 'projects'));
     }
 
@@ -92,7 +374,7 @@ class JobSeekersController extends Controller
     public function updateProfileTabs(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        
+
         // Validate the request
         $validated = $request->validate([
             // Basic Information
@@ -108,7 +390,7 @@ class JobSeekersController extends Controller
             'twitter_url' => 'nullable|url|max:255',
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'resume_file' => 'nullable|file|mimes:pdf,doc,docx|max:5120',
-            
+
             // Education
             'ssc_institution' => 'nullable|string|max:255',
             'ssc_year' => 'nullable|integer|min:1980|max:2030',
@@ -124,7 +406,7 @@ class JobSeekersController extends Controller
             'masters_year' => 'nullable|integer|min:1980|max:2030',
             'masters_grade' => 'nullable|string|max:10',
             'masters_major' => 'nullable|string|max:100',
-            
+
             // Skills
             'skills' => 'nullable|array',
             'skills.*.name' => 'required_with:skills|string|max:100',
@@ -132,19 +414,19 @@ class JobSeekersController extends Controller
             'skills.*.years' => 'nullable|integer|min:0|max:50',
             'skills.*.category' => 'nullable|in:technical,soft,language,other',
             'skills.*.certification' => 'nullable|string|max:255',
-            
+
             // Experience
             'experiences' => 'nullable|array',
             'experiences.*.title' => 'required_with:experiences|string|max:150',
             'experiences.*.company' => 'required_with:experiences|string|max:200',
             'experiences.*.location' => 'nullable|string|max:150',
-            'experiences.*.type' => 'nullable|in:full-time,part-time,contract,internship,freelance',
+            'experiences.*.type' => 'nullable|in:full-time,part-time,contract,internship',
             'experiences.*.start_date' => 'required_with:experiences|date',
             'experiences.*.end_date' => 'nullable|date|after:experiences.*.start_date',
             'experiences.*.currently_working' => 'nullable|boolean',
             'experiences.*.description' => 'nullable|string',
             'experiences.*.achievements' => 'nullable|string',
-            
+
             // Projects
             'projects' => 'nullable|array',
             'projects.*.name' => 'required_with:projects|string|max:200',
@@ -158,25 +440,31 @@ class JobSeekersController extends Controller
             'projects.*.technologies' => 'nullable|string|max:500',
             'projects.*.outcomes' => 'nullable|string',
         ]);
-        
+
         // Handle file uploads
         $profileImagePath = null;
         $resumeFilePath = null;
-        
+
         if ($request->hasFile('profile_image')) {
             $profileImagePath = $request->file('profile_image')->store('profile_images', 'public');
         }
-        
+
         if ($request->hasFile('resume_file')) {
+            // Delete old resume if exists
+            $existingJobSeeker = job_seekers::where('user_id', $user->id)->first();
+            if ($existingJobSeeker && $existingJobSeeker->resume_file) {
+                \Storage::disk('public')->delete($existingJobSeeker->resume_file);
+            }
+            
             $resumeFilePath = $request->file('resume_file')->store('resumes', 'public');
         }
-        
+
         // Update user information
         $user->update([
             'name' => $validated['full_name'],
             'email' => $validated['email'],
         ]);
-        
+
         // Update or create job seeker profile
         $jobSeekerData = [
             'user_id' => $user->id,
@@ -191,42 +479,209 @@ class JobSeekersController extends Controller
             'portfolio_url' => $validated['portfolio_url'] ?? null,
             'twitter_url' => $validated['twitter_url'] ?? null,
         ];
-        
+
         if ($profileImagePath) {
             $jobSeekerData['profile_image'] = $profileImagePath;
         }
-        
+
         if ($resumeFilePath) {
             $jobSeekerData['resume_file'] = $resumeFilePath;
         }
-        
+
         $jobSeeker = job_seekers::updateOrCreate(
             ['user_id' => $user->id],
             $jobSeekerData
         );
-        
+
+        // Debug: Log the saved data
+        \Log::info('JobSeeker Profile Updated:', [
+            'user_id' => $user->id,
+            'jobSeeker_id' => $jobSeeker->seeker_id,
+            'data_saved' => $jobSeekerData,
+            'resume_file' => $resumeFilePath,
+            'profile_image' => $profileImagePath,
+            'validated_data' => $validated
+        ]);
+
         // Handle Education Data
         $this->handleEducationData($user, $validated);
-        
+
         // Handle Skills Data
         if (isset($validated['skills'])) {
             $this->handleSkillsData($jobSeeker, $validated['skills']);
         }
-        
+
         // Handle Experience Data
         if (isset($validated['experiences'])) {
             $this->handleExperienceData($jobSeeker, $validated['experiences']);
         }
-        
+
         // Handle Projects Data
         if (isset($validated['projects'])) {
             $this->handleProjectsData($jobSeeker, $validated['projects']);
         }
-        
+
         return redirect()->route('job_seeker.profile')
-            ->with('success', 'Profile updated successfully!');
+            ->with('success', 'Profile updated successfully! Data saved for JobSeeker ID: ' . $jobSeeker->seeker_id);
+    }
+
+    /**
+     * Test method to check profile data
+     */
+    public function testProfileData()
+    {
+        $user = Auth::user();
+        $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+        
+        $resumeInfo = null;
+        if ($jobSeeker && $jobSeeker->resume_file) {
+            $resumeInfo = [
+                'resume_file_path' => $jobSeeker->resume_file,
+                'full_url' => asset('storage/' . $jobSeeker->resume_file),
+                'storage_path' => storage_path('app/public/' . $jobSeeker->resume_file),
+                'file_exists' => \Storage::disk('public')->exists($jobSeeker->resume_file),
+                'public_path' => public_path('storage/' . $jobSeeker->resume_file),
+                'public_file_exists' => file_exists(public_path('storage/' . $jobSeeker->resume_file))
+            ];
+        }
+        
+        return response()->json([
+            'user' => $user,
+            'jobSeeker' => $jobSeeker,
+            'resume_info' => $resumeInfo,
+            'message' => 'Profile data retrieved successfully'
+        ]);
+    }
+
+    /**
+     * View resume file
+     */
+    public function viewResume()
+    {
+        $user = Auth::user();
+        $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+        
+        if (!$jobSeeker || !$jobSeeker->resume_file) {
+            return redirect()->route('job_seeker.profile')
+                ->with('error', 'No resume file found. Please upload your resume first.');
+        }
+        
+        $filePath = storage_path('app/public/' . $jobSeeker->resume_file);
+        
+        if (!file_exists($filePath)) {
+            return redirect()->route('job_seeker.profile')
+                ->with('error', 'Resume file not found on server. Please re-upload your resume.');
+        }
+        
+        // Return the file with proper headers for viewing in browser
+        $mimeType = mime_content_type($filePath);
+        $fileName = basename($jobSeeker->resume_file);
+        
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"'
+        ]);
     }
     
+    /**
+     * Download resume file
+     */
+    public function downloadResume()
+    {
+        $user = Auth::user();
+        $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+        
+        if (!$jobSeeker || !$jobSeeker->resume_file) {
+            return redirect()->route('job_seeker.profile')
+                ->with('error', 'No resume file found. Please upload your resume first.');
+        }
+        
+        $filePath = storage_path('app/public/' . $jobSeeker->resume_file);
+        
+        if (!file_exists($filePath)) {
+            return redirect()->route('job_seeker.profile')
+                ->with('error', 'Resume file not found on server. Please re-upload your resume.');
+        }
+        
+        $fileName = $jobSeeker->name ? $jobSeeker->name . '_Resume.' . pathinfo($jobSeeker->resume_file, PATHINFO_EXTENSION) : basename($jobSeeker->resume_file);
+        
+        return response()->download($filePath, $fileName);
+    }
+    
+    /**
+     * Test resume files accessibility
+     */
+    public function testResumeFiles()
+    {
+        $user = Auth::user();
+        $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+        
+        $resumeFiles = \Storage::disk('public')->files('resumes');
+        $resumeInfo = [];
+        
+        foreach ($resumeFiles as $file) {
+            $resumeInfo[] = [
+                'file' => $file,
+                'size' => \Storage::disk('public')->size($file),
+                'asset_url' => asset('storage/' . $file),
+                'storage_url' => \Storage::disk('public')->url($file),
+                'exists' => \Storage::disk('public')->exists($file),
+                'public_path' => public_path('storage/' . $file),
+                'public_exists' => file_exists(public_path('storage/' . $file))
+            ];
+        }
+        
+        return response()->json([
+            'user_resume' => $jobSeeker ? $jobSeeker->resume_file : null,
+            'all_resume_files' => $resumeInfo,
+            'storage_path' => storage_path('app/public/resumes'),
+            'public_storage_path' => public_path('storage/resumes'),
+            'storage_link_exists' => is_link(public_path('storage')),
+            'app_url' => config('app.url'),
+            'request_url' => request()->getSchemeAndHttpHost()
+        ]);
+    }
+    
+    /**
+     * Serve resume file directly
+     */
+    public function serveResume($filename)
+    {
+        $user = Auth::user();
+        $jobSeeker = job_seekers::where('user_id', $user->id)->first();
+        
+        if (!$jobSeeker || !$jobSeeker->resume_file) {
+            abort(404, 'Resume not found');
+        }
+        
+        // Security check: make sure the requested file belongs to the current user
+        if (basename($jobSeeker->resume_file) !== $filename) {
+            abort(403, 'Unauthorized access');
+        }
+        
+        $filePath = storage_path('app/public/' . $jobSeeker->resume_file);
+        
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found on server');
+        }
+        
+        $mimeType = mime_content_type($filePath);
+        
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"'
+        ]);
+    }
+
+    /**
+     * Generate proper storage URL
+     */
+    private function getStorageUrl($filePath)
+    {
+        // Use Laravel's Storage facade to generate proper URLs
+        return \Storage::disk('public')->url($filePath);
+    }
+
     /**
      * Handle education data storage
      */
@@ -234,7 +689,7 @@ class JobSeekersController extends Controller
     {
         // Clear existing education records
         education::where('user_id', $user->id)->delete();
-        
+
         // Add SSC if provided
         if (!empty($validated['ssc_institution'])) {
             education::create([
@@ -245,7 +700,7 @@ class JobSeekersController extends Controller
                 'result_value' => $validated['ssc_grade'],
             ]);
         }
-        
+
         // Add HSC if provided
         if (!empty($validated['hsc_institution'])) {
             education::create([
@@ -256,7 +711,7 @@ class JobSeekersController extends Controller
                 'result_value' => $validated['hsc_grade'],
             ]);
         }
-        
+
         // Add Graduation if provided
         if (!empty($validated['graduation_institution'])) {
             education::create([
@@ -268,7 +723,7 @@ class JobSeekersController extends Controller
                 'major_subject' => $validated['graduation_major'],
             ]);
         }
-        
+
         // Add Masters if provided
         if (!empty($validated['masters_institution'])) {
             education::create([
@@ -281,7 +736,7 @@ class JobSeekersController extends Controller
             ]);
         }
     }
-    
+
     /**
      * Handle skills data storage
      */
@@ -289,7 +744,7 @@ class JobSeekersController extends Controller
     {
         // Clear existing skills
         SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)->delete();
-        
+
         foreach ($skills as $skillData) {
             if (!empty($skillData['name'])) {
                 SeekerSkill::create([
@@ -303,7 +758,7 @@ class JobSeekersController extends Controller
             }
         }
     }
-    
+
     /**
      * Handle experience data storage
      */
@@ -311,7 +766,7 @@ class JobSeekersController extends Controller
     {
         // Clear existing experiences
         work_experience::where('seeker_id', $jobSeeker->seeker_id)->delete();
-        
+
         foreach ($experiences as $expData) {
             if (!empty($expData['title']) && !empty($expData['company'])) {
                 work_experience::create([
@@ -329,7 +784,7 @@ class JobSeekersController extends Controller
             }
         }
     }
-    
+
     /**
      * Handle projects data storage
      */
@@ -337,7 +792,7 @@ class JobSeekersController extends Controller
     {
         // Clear existing projects
         \App\Models\Project::where('seeker_id', $jobSeeker->seeker_id)->delete();
-        
+
         foreach ($projects as $projectData) {
             if (!empty($projectData['name'])) {
                 \App\Models\Project::create([
@@ -356,7 +811,7 @@ class JobSeekersController extends Controller
             }
         }
     }
-    
+
     /**
      * Map proficiency text to number for database storage
      */
@@ -368,7 +823,7 @@ class JobSeekersController extends Controller
             'advanced' => 3,
             'expert' => 4,
         ];
-        
+
         return $mapping[$proficiency] ?? 2;
     }
 
@@ -378,7 +833,7 @@ class JobSeekersController extends Controller
     public function updateProfile(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        
+
         // Validate the request
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -397,25 +852,25 @@ class JobSeekersController extends Controller
             'portfolio_url' => 'nullable|url|max:255',
             'github_url' => 'nullable|url|max:255',
         ]);
-        
+
         // Update user information
         /** @var \App\Models\User $user */
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
         ]);
-        
+
         // Update or create job seeker profile
         $jobSeekerData = array_merge($validated, ['user_id' => $user->id]);
         $jobSeeker = job_seekers::updateOrCreate(
             ['user_id' => $user->id],
             $jobSeekerData
         );
-        
+
         return redirect()->route('job_seeker.profile')
             ->with('success', 'Profile updated successfully!');
     }
-    
+
     /**
      * Show job applications for current user
      */
@@ -423,20 +878,20 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         if (!$jobSeeker) {
             return redirect()->route('job_seeker.profile')
                 ->with('warning', 'Please complete your profile first.');
         }
-        
+
         $applications = $jobSeeker->jobApplications()
             ->with(['job.company'])
             ->orderBy('applied_at', 'desc')
             ->paginate(10);
-            
+
         return view('admin.job_seeker.applications', compact('applications'));
     }
-    
+
     /**
      * Show the job application form for a specific job
      */
@@ -444,26 +899,26 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         // If no profile exists, redirect to create profile
         if (!$jobSeeker) {
             return redirect()->route('job_seeker.profile.edit')
                 ->with('info', 'Please complete your profile before applying for jobs.');
         }
-        
+
         // Check if user has already applied for this job
         $existingApplication = $jobSeeker->jobApplications()
             ->where('job_id', $job->id)
             ->first();
-            
+
         if ($existingApplication) {
             return redirect()->route('job_seeker.applications')
                 ->with('info', 'You have already applied for this job.');
         }
-        
+
         return view('admin.job_seeker.application', compact('job', 'jobSeeker', 'user'));
     }
-    
+
     /**
      * Submit a job application
      */
@@ -471,75 +926,154 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
+        // Debug logging
+        \Log::info('Job application submission started', [
+            'user_id' => $user->id,
+            'job_id' => $job->id,
+            'has_job_seeker' => !!$jobSeeker
+        ]);
+
         // If no profile exists, redirect to create profile
         if (!$jobSeeker) {
+            \Log::warning('Job application failed: No job seeker profile', ['user_id' => $user->id]);
             return redirect()->route('job_seeker.profile.edit')
                 ->with('info', 'Please complete your profile before applying for jobs.');
         }
-        
+
         // Check if user has already applied for this job
         $existingApplication = job_applications::where('job_id', $job->id)
             ->where('seeker_id', $jobSeeker->seeker_id)
             ->first();
-            
+
         if ($existingApplication) {
             return redirect()->route('job_seeker.applications')
                 ->with('info', 'You have already applied for this job.');
         }
-        
-        // Validate the request
-        $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'required|string|max:20',
-            'location' => 'nullable|string|max:255',
-            'current_position' => 'nullable|string|max:150',
-            'experience' => 'required|string|max:50',
-            'skills' => 'nullable|string|max:500',
-            'resume' => 'required|file|mimes:pdf,doc,docx|max:5120', // 5MB max
-            'cover_letter' => 'nullable|string|max:5000',
-            'availability' => 'required|string|max:50',
-            'salary_expectation' => 'nullable|string|max:50',
-            'hear_about' => 'nullable|string|max:50',
-            'terms' => 'required|accepted',
+
+        // Debug: Log request data
+        \Log::info('Job application request data', [
+            'user_id' => $user->id,
+            'job_id' => $job->id,
+            'has_resume_file' => $request->hasFile('resume'),
+            'resume_file_info' => $request->hasFile('resume') ? [
+                'name' => $request->file('resume')->getClientOriginalName(),
+                'size' => $request->file('resume')->getSize(),
+                'mime' => $request->file('resume')->getMimeType(),
+            ] : null,
+            'all_files' => array_keys($request->allFiles()),
+            'form_data_keys' => array_keys($request->except(['resume', '_token'])),
+            'request_method' => $request->method(),
+            'content_type' => $request->header('Content-Type')
         ]);
-        
+
+        // Validate the request
+        try {
+            $validated = $request->validate([
+                'full_name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'phone' => 'required|string|max:20',
+                'location' => 'nullable|string|max:255',
+                'current_position' => 'nullable|string|max:150',
+                'experience' => 'required|string|max:50',
+                'skills' => 'nullable|string|max:500',
+                'resume' => 'nullable|file|mimes:pdf,doc,docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document|max:5120', // 5MB max - temporarily optional for testing
+                'cover_letter' => 'nullable|string|max:5000',
+                'availability' => 'required|string|max:50',
+                'salary_expectation' => 'nullable|string|max:50',
+                'hear_about' => 'nullable|string|max:50',
+                'terms' => 'required|accepted',
+            ]);
+
+            \Log::info('Job application validation passed', [
+                'user_id' => $user->id,
+                'job_id' => $job->id,
+                'fields' => array_keys($validated)
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Job application validation failed', [
+                'user_id' => $user->id,
+                'job_id' => $job->id,
+                'errors' => $e->errors()
+            ]);
+            throw $e;
+        }
+
         // Handle file upload
         $resumePath = null;
         if ($request->hasFile('resume')) {
-            $resumePath = $request->file('resume')->store('resumes', 'public');
+            try {
+                $resumePath = $request->file('resume')->store('resumes', 'public');
+                \Log::info('Resume uploaded successfully', [
+                    'user_id' => $user->id,
+                    'file_path' => $resumePath,
+                    'original_name' => $request->file('resume')->getClientOriginalName()
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Resume upload failed', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
+                ]);
+                return redirect()->back()
+                    ->withErrors(['resume' => 'Failed to upload resume file. Please try again.'])
+                    ->withInput();
+            }
+        } else {
+            \Log::warning('No resume file received', [
+                'user_id' => $user->id,
+                'all_files' => $request->allFiles(),
+                'has_files' => $request->hasFile('resume')
+            ]);
         }
-        
-        // Generate unique application ID
-        $applicationId = time() . $jobSeeker->seeker_id;
-        
-        // Create job application
-        job_applications::create([
-            'application_id' => $applicationId,
+
+        // Generate unique application ID (integer only)
+        $applicationId = (int) (time() + $jobSeeker->seeker_id);
+
+        try {
+            // Create job application
+            job_applications::create([
+                'application_id' => $applicationId,
+                'job_id' => $job->id,
+                'seeker_id' => $jobSeeker->seeker_id,
+                'cover_letter' => $validated['cover_letter'],
+                'resume_file' => $resumePath,
+                'application_status' => 'pending',
+                'applied_at' => now(),
+                'status_updated_at' => now(),
+                'notes' => json_encode([
+                    'full_name' => $validated['full_name'],
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'],
+                    'location' => $validated['location'],
+                    'current_position' => $validated['current_position'],
+                    'experience' => $validated['experience'],
+                    'skills' => $validated['skills'],
+                    'availability' => $validated['availability'],
+                    'salary_expectation' => $validated['salary_expectation'],
+                    'hear_about' => $validated['hear_about'],
+                ])
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Job application submission failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'job_id' => $job->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to submit application. Please try again.'])
+                ->withInput();
+        }
+
+        \Log::info('Job application submitted successfully', [
+            'user_id' => $user->id,
             'job_id' => $job->id,
-            'seeker_id' => $jobSeeker->seeker_id,
-            'cover_letter' => $validated['cover_letter'],
-            'resume_file' => $resumePath,
-            'application_status' => 'pending',
-            'applied_at' => now(),
-            'status_updated_at' => now(),
-            'notes' => json_encode([
-                'full_name' => $validated['full_name'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'location' => $validated['location'],
-                'current_position' => $validated['current_position'],
-                'experience' => $validated['experience'],
-                'skills' => $validated['skills'],
-                'availability' => $validated['availability'],
-                'salary_expectation' => $validated['salary_expectation'],
-                'hear_about' => $validated['hear_about'],
-            ])
+            'application_id' => $applicationId
         ]);
-        
+
         return redirect()->route('job_seeker.applications')
             ->with([
+                'success' => 'Your application has been submitted successfully!',
                 'swal' => [
                     'title' => 'Success!',
                     'text' => 'Your application has been submitted successfully!',
@@ -549,7 +1083,7 @@ class JobSeekersController extends Controller
                 ]
             ]);
     }
-    
+
     /**
      * Show saved jobs for current user
      */
@@ -557,35 +1091,35 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         if (!$jobSeeker) {
             return redirect()->route('job_seeker.profile')
                 ->with('warning', 'Please complete your profile first.');
         }
-        
+
         $savedJobs = $jobSeeker->savedJobs()
             ->with(['job.company'])
             ->orderBy('saved_at', 'desc')
             ->paginate(10);
-            
+
         return view('admin.job_seeker.saved_jobs', compact('savedJobs'));
     }
-    
+
     /**
      * Show job alerts for current user
      */
     public function jobAlerts(): View
     {
         $user = Auth::user();
-        
+
         // Get job alerts through the relationship or directly from the model
         $jobAlerts = \App\Models\job_alerts::where('seeker_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-            
+
         return view('admin.job_seeker.job_alerts', compact('jobAlerts'));
     }
-    
+
     /**
      * Show the current user's resume
      */
@@ -593,27 +1127,27 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         if (!$jobSeeker) {
             return redirect()->route('job_seeker.resume.create')
                 ->with('info', 'Create your resume to get started!');
         }
-        
+
         $workExperiences = work_experience::where('seeker_id', $jobSeeker->seeker_id)
             ->orderBy('start_date', 'desc')
             ->get();
-            
+
         $educations = education::where('user_id', $user->id)
             ->orderBy('passing_year', 'desc')
             ->get();
-            
+
         $skills = SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)
             ->orderBy('proficiency', 'desc')
             ->get();
-        
+
         return view('admin.job_seeker.resume-view', compact('jobSeeker', 'user', 'workExperiences', 'educations', 'skills'));
     }
-    
+
     /**
      * Show the resume management dashboard with CRUD operations
      */
@@ -621,28 +1155,28 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         $workExperiences = collect();
         $educations = collect();
         $skills = collect();
-        
+
         if ($jobSeeker) {
             $workExperiences = work_experience::where('seeker_id', $jobSeeker->seeker_id)
                 ->orderBy('start_date', 'desc')
                 ->get();
-                
+
             $educations = education::where('user_id', $user->id)
                 ->orderBy('passing_year', 'desc')
                 ->get();
-                
+
             $skills = SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)
                 ->orderBy('proficiency', 'desc')
                 ->get();
         }
-        
+
         return view('admin.job_seeker.resume-management', compact('jobSeeker', 'user', 'workExperiences', 'educations', 'skills'));
     }
-    
+
     /**
      * Show the form to create a new resume
      */
@@ -650,10 +1184,10 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         return view('admin.job_seeker.resume-create', compact('user', 'jobSeeker'));
     }
-    
+
     /**
      * Show the form to edit the current user's resume
      */
@@ -661,34 +1195,34 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         if (!$jobSeeker) {
             return redirect()->route('job_seeker.resume.create')
                 ->with('info', 'Create your resume first!');
         }
-        
+
         $workExperiences = work_experience::where('seeker_id', $jobSeeker->seeker_id)
             ->orderBy('start_date', 'desc')
             ->get();
-            
+
         $educations = education::where('user_id', $user->id)
             ->orderBy('passing_year', 'desc')
             ->get();
-            
+
         $skills = SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)
             ->orderBy('proficiency', 'desc')
             ->get();
-        
+
         return view('admin.job_seeker.resume-edit', compact('jobSeeker', 'user', 'workExperiences', 'educations', 'skills'));
     }
-    
+
     /**
      * Store a new resume
      */
     public function storeResume(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        
+
         // Validate basic info
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
@@ -705,7 +1239,7 @@ class JobSeekersController extends Controller
             'linkedin_url' => 'nullable|url|max:255',
             'portfolio_url' => 'nullable|url|max:255',
             'github_url' => 'nullable|url|max:255',
-            
+
             // Work Experience validation
             'work_experiences' => 'nullable|array',
             'work_experiences.*.company_name' => 'required_with:work_experiences|string|max:200',
@@ -716,28 +1250,29 @@ class JobSeekersController extends Controller
             'work_experiences.*.is_current' => 'boolean',
             'work_experiences.*.location' => 'nullable|string|max:150',
             'work_experiences.*.description' => 'nullable|string',
-            
+
             // Education validation
             'educations' => 'nullable|array',
             'educations.*.degree_name' => 'required_with:educations|string|max:255',
             'educations.*.institute_name' => 'required_with:educations|string|max:255',
+            'educations.*.field_of_study' => 'nullable|string|max:100',
+            'educations.*.start_year' => 'nullable|integer|min:1900|max:' . (date('Y') + 5),
             'educations.*.passing_year' => 'required_with:educations|integer|min:1900|max:' . (date('Y') + 5),
             'educations.*.result_type' => 'nullable|in:grade,division,percentage',
             'educations.*.result_value' => 'nullable|string|max:10',
-            'educations.*.major_subject' => 'nullable|string|max:100',
-            
+            'educations.*.description' => 'nullable|string',
+
             // Skills validation
             'skills' => 'nullable|array',
             'skills.*.skill_name' => 'required_with:skills|string|max:50',
             'skills.*.proficiency' => 'required_with:skills|integer|min:1|max:5',
         ]);
-        
+
         // Update or create job seeker profile
         $jobSeekerData = [
             'user_id' => $user->id,
             'name' => $validated['name'] ?? $user->name,
             'email' => $validated['email'] ?? $user->email,
-            'age' => $validated['age'] ?? null,
             'bio' => $validated['bio'] ?? null,
             'current_position' => $validated['current_position'] ?? null,
             'experience_years' => $validated['experience_years'] ?? null,
@@ -750,12 +1285,17 @@ class JobSeekersController extends Controller
             'portfolio_url' => $validated['portfolio_url'] ?? null,
             'github_url' => $validated['github_url'] ?? null,
         ];
-        
+
+        // Convert age to date_of_birth if age is provided
+        if (isset($validated['age']) && $validated['age']) {
+            $jobSeekerData['date_of_birth'] = now()->subYears($validated['age'])->format('Y-m-d');
+        }
+
         $jobSeeker = job_seekers::updateOrCreate(
             ['user_id' => $user->id],
             $jobSeekerData
         );
-        
+
         // Handle work experiences
         if (isset($validated['work_experiences'])) {
             foreach ($validated['work_experiences'] as $expData) {
@@ -778,7 +1318,7 @@ class JobSeekersController extends Controller
                 }
             }
         }
-        
+
         // Handle educations
         if (isset($validated['educations'])) {
             foreach ($validated['educations'] as $eduData) {
@@ -791,15 +1331,17 @@ class JobSeekersController extends Controller
                             'passing_year' => $eduData['passing_year'],
                         ],
                         [
+                            'field_of_study' => $eduData['field_of_study'] ?? null,
+                            'start_year' => $eduData['start_year'] ?? null,
                             'result_type' => $eduData['result_type'] ?? null,
                             'result_value' => $eduData['result_value'] ?? null,
-                            'major_subject' => $eduData['major_subject'] ?? null,
+                            'description' => $eduData['description'] ?? null,
                         ]
                     );
                 }
             }
         }
-        
+
         // Handle skills
         if (isset($validated['skills'])) {
             foreach ($validated['skills'] as $skillData) {
@@ -816,13 +1358,13 @@ class JobSeekersController extends Controller
                 }
             }
         }
-        
+
         $message = $request->isMethod('put') ? 'Resume updated successfully!' : 'Resume created successfully!';
-        
+
         return redirect()->route('job_seeker.resume')
             ->with('success', $message);
     }
-    
+
     /**
      * Update an existing resume
      */
@@ -830,7 +1372,7 @@ class JobSeekersController extends Controller
     {
         return $this->storeResume($request);
     }
-    
+
     /**
      * Delete the current user's resume
      */
@@ -838,17 +1380,17 @@ class JobSeekersController extends Controller
     {
         $user = Auth::user();
         $jobSeeker = job_seekers::where('user_id', $user->id)->first();
-        
+
         if ($jobSeeker) {
             // Delete related data
             work_experience::where('seeker_id', $jobSeeker->seeker_id)->delete();
             education::where('user_id', $user->id)->delete();
             SeekerSkill::where('seeker_id', $jobSeeker->seeker_id)->delete();
-            
+
             // Delete job seeker profile
             $jobSeeker->delete();
         }
-        
+
         return redirect()->route('job_seeker.resume.create')
             ->with('success', 'Resume deleted successfully!');
     }

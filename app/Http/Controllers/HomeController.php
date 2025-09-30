@@ -11,12 +11,12 @@ class HomeController extends Controller
     /**
      * Display the home page with dynamically loaded categories and recent jobs.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Fetch active categories for the browse by categories section
+        // Fetch active categories with pagination (8 per page)
         $categories = Category::where('status', '1')
             ->orderBy('name')
-            ->get();
+            ->paginate(8, ['*'], 'categories_page');
         
         // Fetch recent jobs for the browse recent jobs section
         $recentJobs = jobs::with('company')
