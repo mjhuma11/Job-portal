@@ -18,6 +18,14 @@ class CategoryFactory extends Factory
     {
         return [
             //
+            'name' => fake()->name(),
+            'slug' => fake()->slug(),
+            'icon' => fake()->imageUrl(),
+            'description' => fake()->text(),
+            'image' => fake()->imageUrl(),
+            'status' => fake()->randomElement(['0', '1']),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\EmployerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\JobSeekersController;
@@ -30,7 +31,7 @@ Route::get('/test-home', function () {
     return response()->json(['message' => 'Home route is working']);
 });
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home')->middleware('redirect.if.admin');
 
 // Public Categories Routes
 Route::get('/categories', [CategoryController::class, 'publicIndex'])->name('categories.index');
@@ -251,9 +252,76 @@ Route::get('/simple-create-company', function () {
     }
 })->middleware('auth');
 
-Route::get('/admin/dashboard', function () {
-    return view('admin.dashboard');
-})->name('admin.dashboard')->middleware('admin');
+// Admin Routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // User Management
+    Route::get('/employers', [AdminController::class, 'employers'])->name('employers');
+    Route::get('/employers/create', [AdminController::class, 'createEmployer'])->name('employers.create');
+    Route::post('/employers', [AdminController::class, 'storeEmployer'])->name('employers.store');
+    Route::get('/employers/{company}', [AdminController::class, 'showEmployer'])->name('employers.show');
+    Route::get('/employers/{company}/edit', [AdminController::class, 'editEmployer'])->name('employers.edit');
+    Route::put('/employers/{company}', [AdminController::class, 'updateEmployer'])->name('employers.update');
+    Route::delete('/employers/{company}', [AdminController::class, 'destroyEmployer'])->name('employers.destroy');
+    Route::post('/employers/{company}/approve', [AdminController::class, 'approveEmployer'])->name('employers.approve');
+    Route::post('/employers/{company}/suspend', [AdminController::class, 'suspendEmployer'])->name('employers.suspend');
+    
+    Route::get('/job-seekers', [AdminController::class, 'jobSeekers'])->name('job_seekers');
+    Route::get('/job-seekers/{user}', [AdminController::class, 'showJobSeeker'])->name('job_seekers.show');
+    Route::post('/job-seekers/{user}/handle-report', [AdminController::class, 'handleReportedJobSeeker'])->name('job_seekers.handle_report');
+    
+    // Role Management
+    Route::get('/roles', [AdminController::class, 'roles'])->name('roles');
+    Route::get('/roles/create', [AdminController::class, 'createRole'])->name('roles.create');
+    Route::post('/roles', [AdminController::class, 'storeRole'])->name('roles.store');
+    Route::get('/roles/{role}/edit', [AdminController::class, 'editRole'])->name('roles.edit');
+    Route::put('/roles/{role}', [AdminController::class, 'updateRole'])->name('roles.update');
+    Route::delete('/roles/{role}', [AdminController::class, 'destroyRole'])->name('roles.destroy');
+    
+    // Job Management
+    Route::get('/jobs', [AdminController::class, 'jobs'])->name('jobs');
+    Route::get('/jobs/{job}', [AdminController::class, 'showJob'])->name('jobs.show');
+    Route::post('/jobs/{job}/approve', [AdminController::class, 'approveJob'])->name('jobs.approve');
+    Route::post('/jobs/{job}/block', [AdminController::class, 'blockJob'])->name('jobs.block');
+    Route::post('/jobs/{job}/feature', [AdminController::class, 'featureJob'])->name('jobs.feature');
+    Route::post('/jobs/{job}/unfeature', [AdminController::class, 'unfeatureJob'])->name('jobs.unfeature');
+    
+    // Category Management
+    Route::get('/categories', [AdminController::class, 'categories'])->name('categories');
+    Route::get('/categories/create', [AdminController::class, 'createCategory'])->name('categories.create');
+    Route::post('/categories', [AdminController::class, 'storeCategory'])->name('categories.store');
+    Route::get('/categories/{category}/edit', [AdminController::class, 'editCategory'])->name('categories.edit');
+    Route::put('/categories/{category}', [AdminController::class, 'updateCategory'])->name('categories.update');
+    Route::delete('/categories/{category}', [AdminController::class, 'destroyCategory'])->name('categories.destroy');
+    
+    // Location Management
+    Route::get('/locations', [AdminController::class, 'locations'])->name('locations');
+    Route::get('/locations/create', [AdminController::class, 'createLocation'])->name('locations.create');
+    Route::post('/locations', [AdminController::class, 'storeLocation'])->name('locations.store');
+    Route::get('/locations/{location}/edit', [AdminController::class, 'editLocation'])->name('locations.edit');
+    Route::put('/locations/{location}', [AdminController::class, 'updateLocation'])->name('locations.update');
+    Route::delete('/locations/{location}', [AdminController::class, 'destroyLocation'])->name('locations.destroy');
+    
+    // Content Management
+    Route::get('/faqs', [AdminController::class, 'faqs'])->name('faqs');
+    Route::get('/faqs/create', [AdminController::class, 'createFaq'])->name('faqs.create');
+    Route::post('/faqs', [AdminController::class, 'storeFaq'])->name('faqs.store');
+    Route::get('/faqs/{faq}/edit', [AdminController::class, 'editFaq'])->name('faqs.edit');
+    Route::put('/faqs/{faq}', [AdminController::class, 'updateFaq'])->name('faqs.update');
+    Route::delete('/faqs/{faq}', [AdminController::class, 'destroyFaq'])->name('faqs.destroy');
+    
+    Route::get('/messages', [AdminController::class, 'contactMessages'])->name('messages');
+    Route::get('/messages/{message}', [AdminController::class, 'showContactMessage'])->name('messages.show');
+    Route::post('/messages/{message}/reply', [AdminController::class, 'replyContactMessage'])->name('messages.reply');
+    
+    // Analytics
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+    
+    // Moderation
+    Route::get('/reported-content', [AdminController::class, 'reportedContent'])->name('reported_content');
+    Route::post('/handle-report', [AdminController::class, 'handleReport'])->name('handle_report');
+});
 
 // Job Seeker Routes - accessible to job seekers and admins
 Route::prefix('job-seeker')->name('job_seeker.')->middleware(['auth', 'jobseeker'])->group(function () {

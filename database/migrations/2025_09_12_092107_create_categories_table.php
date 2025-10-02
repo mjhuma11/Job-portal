@@ -13,7 +13,7 @@ return new class extends Migration
      {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();  // auto-incrementing primary key (bigint)
-            $table->string('name');
+            $table->string('name')->unique();
             $table->string('slug')->unique();
             $table->string('icon')->nullable();         // maybe nullable if not always provided
             $table->text('description')->nullable();    // description often better as text
