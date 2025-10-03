@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'jobseeker' => \App\Http\Middleware\JobSeekerAccess::class,
             'apply.check' => \App\Http\Middleware\ApplyCheck::class,
             'post.check' => \App\Http\Middleware\PostCheck::class,
+            'redirect.if.admin' => \App\Http\Middleware\RedirectIfAdmin::class,
             
         ]);
     })

@@ -31,6 +31,7 @@ Route::get('/test-home', function () {
     return response()->json(['message' => 'Home route is working']);
 });
 
+// Home route - redirect admin users to admin dashboard
 Route::get('/', [HomeController::class, 'index'])->name('home')->middleware('redirect.if.admin');
 
 // Public Categories Routes
@@ -271,6 +272,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/job-seekers/{user}', [AdminController::class, 'showJobSeeker'])->name('job_seekers.show');
     Route::post('/job-seekers/{user}/handle-report', [AdminController::class, 'handleReportedJobSeeker'])->name('job_seekers.handle_report');
     
+    // User Management Routes
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [AdminController::class, 'userManagement'])->name('index');
+        Route::get('/create', [AdminController::class, 'createUser'])->name('create');
+        Route::post('/', [AdminController::class, 'storeUser'])->name('store');
+        Route::get('/{user}', [AdminController::class, 'showUser'])->name('show');
+        Route::get('/{user}/edit', [AdminController::class, 'editUser'])->name('edit');
+        Route::put('/{user}', [AdminController::class, 'updateUser'])->name('update');
+        Route::delete('/{user}', [AdminController::class, 'deleteUser'])->name('destroy');
+        Route::post('/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('toggle-status');
+    });
+    
     // Role Management
     Route::get('/roles', [AdminController::class, 'roles'])->name('roles');
     Route::get('/roles/create', [AdminController::class, 'createRole'])->name('roles.create');
@@ -394,18 +407,6 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'employer'])->
     // Password Management Routes
     Route::get('/password/edit', [EmployerController::class, 'editPassword'])->name('password.edit');
     Route::put('/password', [EmployerController::class, 'updatePassword'])->name('password.update');
-    
-    // User Management Routes
-    Route::prefix('users')->name('users.')->group(function () {
-        Route::get('/', [EmployerController::class, 'userManagement'])->name('index');
-        Route::get('/create', [EmployerController::class, 'createUser'])->name('create');
-        Route::post('/', [EmployerController::class, 'storeUser'])->name('store');
-        Route::get('/{user}', [EmployerController::class, 'showUser'])->name('show');
-        Route::get('/{user}/edit', [EmployerController::class, 'editUser'])->name('edit');
-        Route::put('/{user}', [EmployerController::class, 'updateUser'])->name('update');
-        Route::delete('/{user}', [EmployerController::class, 'deleteUser'])->name('destroy');
-        Route::post('/{user}/toggle-status', [EmployerController::class, 'toggleUserStatus'])->name('toggle-status');
-    });
     
     // Company Management Routes
     Route::prefix('companies')->name('companies.')->group(function () {
