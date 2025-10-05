@@ -3,40 +3,54 @@
 @section('title', 'Job Seeker Dashboard - CareerBridge')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50">
+<div class="min-h-screen bg-gray-100">
     <div class="flex">
         <!-- Include Left Sidebar -->
         @include('admin.job_seeker.partials.sidebar')
 
         <!-- Main Content -->
         <div class="flex-1">
-            <!-- Header -->
-            <div class="bg-white shadow-lg border-b border-gray-100 px-6 py-6">
+            <!-- Enhanced Header with Solid Colors -->
+            <div class="bg-white shadow-lg border-b border-gray-200 px-8 py-8 sticky top-0 z-10">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900">Job Seeker Dashboard</h1>
-                        <nav class="text-sm text-gray-500 mt-2">
-                            <span>Job Seeker</span>
-                            <span class="mx-2">/</span>
-                            <span>Dashboard</span>
-                            <span class="mx-2">/</span>
-                            <span class="text-teal-600 font-medium">Your Career Stats</span>
-                        </nav>
-                        <p class="text-gray-600 mt-2">Track your job search progress and discover new opportunities</p>
-                    </div>
-                    <div class="hidden md:block">
-                        <div class="flex items-center space-x-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white px-4 py-2 rounded-lg">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <span class="font-medium">Updated just now</span>
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-4xl font-bold text-gray-900">
+                                    Welcome Back, {{ auth()->user()->name }}!
+                                </h1>
+                                <p class="text-gray-600 text-lg">Ready to find your dream job today?</p>
+                            </div>
                         </div>
+                        <nav class="flex items-center space-x-2 text-sm text-gray-500">
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">Job Seeker</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">Dashboard</span>
+                        </nav>
+                    </div>
+                    <div class="hidden lg:flex items-center space-x-4">
+                        <div class="flex items-center space-x-3 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg">
+                            <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                            <span class="font-semibold">Live Updates</span>
+                        </div>
+                        <button class="p-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-300 shadow-lg">
+                            <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h8v-2H4v2zM4 11h8V9H4v2z"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Dashboard Content -->
-            <div class="p-6">
+            <!-- Dashboard Content with Enhanced Spacing -->
+            <div class="p-8 space-y-8">
                 <!-- Include Statistics -->
                 @include('admin.job_seeker.partials.statistics')
 

@@ -13,6 +13,11 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
+        // Redirect admin users to their dashboard
+        if (auth()->check() && auth()->user()->isAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+        
         // Fetch active categories with pagination (8 per page)
         $categories = Category::where('status', '1')
             ->orderBy('name')

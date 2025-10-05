@@ -31,8 +31,8 @@ Route::get('/test-home', function () {
     return response()->json(['message' => 'Home route is working']);
 });
 
-// Home route - redirect admin users to admin dashboard
-Route::get('/', [HomeController::class, 'index'])->name('home')->middleware('redirect.if.admin');
+// Home route
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Public Categories Routes
 Route::get('/categories', [CategoryController::class, 'publicIndex'])->name('categories.index');
