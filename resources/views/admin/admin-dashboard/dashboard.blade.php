@@ -34,7 +34,6 @@
                             <h3 class="text-xl font-bold text-gray-900">Recent Jobs</h3>
                             <span class="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">{{ $recentJobs->count() }} New</span>
                         </div>
-                        <p class="text-gray-600 text-sm mt-1">Latest job postings</p>
                     </div>
                     <div class="p-6">
                         <div class="space-y-4">
@@ -43,7 +42,7 @@
                                 <div>
                                     <h4 class="font-bold text-gray-900">{{ $job->job_title }}</h4>
                                     <p class="text-sm text-gray-600 mt-1">{{ $job->company->name }}</p>
-                                    <p class="text-xs text-gray-500 mt-1">Posted: {{ $job->created_at->format('M d, Y') }}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Posted: {{ $job->created_at?->format('M d, Y') ?? 'N/A' }}</p>
                                 </div>
                                 <div class="text-right">
                                     <span class="inline-flex px-3 py-1 text-xs font-bold rounded-full 
@@ -95,7 +94,7 @@
                                     <div>
                                         <h4 class="font-bold text-gray-900">{{ $employer->name }}</h4>
                                         <p class="text-sm text-gray-600">{{ $employer->user->name }}</p>
-                                        <p class="text-xs text-gray-500">Registered: {{ $employer->created_at->format('M d, Y') }}</p>
+                                        <p class="text-xs text-gray-500">Registered: {{ $employer->created_at?->format('M d, Y') ?? 'N/A' }}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
