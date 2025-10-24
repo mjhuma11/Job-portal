@@ -104,19 +104,26 @@ class EmployerController extends Controller
         // Validate the request
         $validated = $request->validate([
             'company_id' => 'required|exists:companies,id',
-            'job_title' => 'required|string|max:255|unique:jobs_post',
+            'job_title' => 'required|string|max:255',
+            'category_id' => 'nullable|exists:categories,id',
+            'location_id' => 'nullable|exists:locations,id',
             'category' => 'nullable|string|max:255',
             'salary' => 'nullable|string|max:255',
+            'salary_min' => 'nullable|numeric|min:0',
+            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
+            'salary_type' => 'nullable|in:hourly,monthly,yearly',
             'requirements' => 'nullable|string',
             'experience' => 'nullable|string|max:255',
+            'experience_level' => 'nullable|in:entry,mid,senior,executive',
             'responsibilities' => 'nullable|string',
             'benefits' => 'nullable|string',
             'application_deadline' => 'nullable|date|after:today',
             'is_featured' => 'boolean',
-            'job_type' => 'nullable|in:full-time,part-time,contractor,remote',
-            'status' => 'in:open,closed,draft',
+            'job_type' => 'nullable|in:full-time,part-time,contract,freelance,internship',
+            'status' => 'in:open,closed,draft,pending',
             'description' => 'nullable|string',
             'location' => 'nullable|string|max:255',
+            'remote_work' => 'boolean',
         ]);
 
         // Verify that the selected company belongs to the authenticated employer
@@ -132,12 +139,21 @@ class EmployerController extends Controller
 
         // Convert checkbox value to boolean
         $validated['is_featured'] = $request->has('is_featured');
+        
+        // Set job status to pending for admin approval (unless it's a draft)
+        if (!isset($validated['status']) || $validated['status'] !== 'draft') {
+            $validated['status'] = 'pending';
+        }
 
         try {
             jobs::create($validated);
             
+            $message = $validated['status'] === 'pending' 
+                ? 'Job posted successfully and is pending admin approval.' 
+                : 'Job saved as draft successfully.';
+            
             return redirect()->route('employer.jobs.index')
-                ->with('success', 'Job posted successfully.');
+                ->with('success', $message);
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()

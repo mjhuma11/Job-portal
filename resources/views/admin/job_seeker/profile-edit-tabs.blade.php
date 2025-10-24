@@ -52,24 +52,7 @@
             </div>
         </div>
 
-        <!-- Debug Information (Remove in production) -->
-        @if(config('app.debug'))
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h4 class="text-sm font-medium text-blue-800 mb-2">Debug Info - Form Data (Development Only)</h4>
-            <div class="text-xs text-blue-700">
-                <p><strong>JobSeeker Exists:</strong> {{ $jobSeeker ? 'Yes' : 'No' }}</p>
-                @if($jobSeeker)
-                    <p><strong>JobSeeker ID:</strong> {{ $jobSeeker->seeker_id ?? 'NULL' }}</p>
-                    <p><strong>Name:</strong> {{ $jobSeeker->name ?? 'NULL' }}</p>
-                    <p><strong>Email:</strong> {{ $jobSeeker->email ?? 'NULL' }}</p>
-                    <p><strong>Phone:</strong> {{ $jobSeeker->phone ?? 'NULL' }}</p>
-                    <p><strong>Resume File:</strong> {{ $jobSeeker->resume_file ?? 'NULL' }}</p>
-                @endif
-                <p><strong>User Name:</strong> {{ $user->name }}</p>
-                <p><strong>User Email:</strong> {{ $user->email }}</p>
-            </div>
-        </div>
-        @endif
+
 
         <!-- Form Container -->
         <form id="profileForm" method="POST" action="{{ route('job_seeker.profile.update') }}" enctype="multipart/form-data">

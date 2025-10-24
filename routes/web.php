@@ -294,9 +294,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     
     // Job Management
     Route::get('/jobs', [AdminController::class, 'jobs'])->name('jobs');
+    Route::get('/jobs/create', [AdminController::class, 'createJob'])->name('jobs.create');
+    Route::post('/jobs', [AdminController::class, 'storeJob'])->name('jobs.store');
     Route::get('/jobs/{job}', [AdminController::class, 'showJob'])->name('jobs.show');
+    Route::get('/jobs/{job}/edit', [AdminController::class, 'editJob'])->name('jobs.edit');
+    Route::put('/jobs/{job}', [AdminController::class, 'updateJob'])->name('jobs.update');
+    Route::delete('/jobs/{job}', [AdminController::class, 'destroyJob'])->name('jobs.destroy');
     Route::post('/jobs/{job}/approve', [AdminController::class, 'approveJob'])->name('jobs.approve');
-    Route::post('/jobs/{job}/block', [AdminController::class, 'blockJob'])->name('jobs.block');
+    Route::post('/jobs/{job}/reject', [AdminController::class, 'rejectJob'])->name('jobs.reject');
     Route::post('/jobs/{job}/feature', [AdminController::class, 'featureJob'])->name('jobs.feature');
     Route::post('/jobs/{job}/unfeature', [AdminController::class, 'unfeatureJob'])->name('jobs.unfeature');
     
@@ -344,6 +349,7 @@ Route::prefix('job-seeker')->name('job_seeker.')->middleware(['auth', 'jobseeker
     Route::post('/messages/{message}/read', [JobSeekersController::class, 'markMessageRead'])->name('messages.read');
     
     Route::get('/profile', [JobSeekersController::class, 'showProfile'])->name('profile');
+    Route::get('/my-profile', [JobSeekersController::class, 'showProfile'])->name('my_profile');
     Route::get('/profile/edit', [JobSeekersController::class, 'editProfileTabs'])->name('profile.edit');
     Route::get('/profile/edit-tabs', [JobSeekersController::class, 'editProfileTabs'])->name('profile.edit.tabs');
     Route::put('/profile', [JobSeekersController::class, 'updateProfileTabs'])->name('profile.update');
@@ -369,13 +375,48 @@ Route::prefix('job-seeker')->name('job_seeker.')->middleware(['auth', 'jobseeker
     // Resume viewing routes
     Route::get('/resume/view', [JobSeekersController::class, 'viewResume'])->name('resume.view');
     Route::get('/resume/download', [JobSeekersController::class, 'downloadResume'])->name('resume.download');
+    Route::get('/resume/generate', [JobSeekersController::class, 'generateResume'])->name('resume.generate');
     Route::get('/resume/serve/{filename}', [JobSeekersController::class, 'serveResume'])->name('resume.serve');
     Route::get('/test-resume-files', [JobSeekersController::class, 'testResumeFiles'])->name('test.resume.files');
     
-    // Other job seeker routes
+    // Saved Jobs Routes
+    Route::get('/saved-jobs', [JobSeekersController::class, 'savedJobs'])->name('saved_jobs');
+    Route::post('/jobs/{job}/save', [JobSeekersController::class, 'saveJob'])->name('jobs.save');
+    Route::delete('/saved-jobs/{job}', [JobSeekersController::class, 'unsaveJob'])->name('saved_jobs.remove');
+    
+    // Job Alerts Routes
+    Route::get('/job-alerts', [JobSeekersController::class, 'jobAlerts'])->name('job_alerts');
+    Route::post('/job-alerts', [JobSeekersController::class, 'createJobAlert'])->name('job_alerts.create');
+    Route::put('/job-alerts/{alert}', [JobSeekersController::class, 'updateJobAlert'])->name('job_alerts.update');
+    Route::delete('/job-alerts/{alert}', [JobSeekersController::class, 'deleteJobAlert'])->name('job_alerts.destroy');
+    
+    // Following Companies Routes
+    Route::get('/following', [JobSeekersController::class, 'following'])->name('following');
+    Route::post('/companies/{company}/follow', [JobSeekersController::class, 'followCompany'])->name('companies.follow');
+    Route::delete('/companies/{company}/unfollow', [JobSeekersController::class, 'unfollowCompany'])->name('companies.unfollow');
+    
+    // Messages Routes
+    Route::get('/messages', [JobSeekersController::class, 'messages'])->name('messages');
+    Route::get('/messages/{message}', [JobSeekersController::class, 'showMessage'])->name('messages.show');
+    Route::post('/messages/{message}/reply', [JobSeekersController::class, 'replyMessage'])->name('messages.reply');
+    
+    // Security Settings Routes
+    Route::get('/security', [JobSeekersController::class, 'security'])->name('security');
+    Route::put('/security/password', [JobSeekersController::class, 'updatePassword'])->name('security.password');
+    Route::put('/security/email', [JobSeekersController::class, 'updateEmail'])->name('security.email');
+    Route::post('/security/two-factor', [JobSeekersController::class, 'enableTwoFactor'])->name('security.two_factor');
+    
+    // AJAX page content routes
+    Route::get('/page/{page}', [JobSeekersController::class, 'getPageContent'])->name('page.content');
+    
+
+    
+    // Other job seeker routes (moved back inside the group)
     Route::get('/saved-jobs', [JobSeekersController::class, 'savedJobs'])->name('saved_jobs');
     Route::get('/job-alerts', [JobSeekersController::class, 'jobAlerts'])->name('job_alerts');
 });
+
+
 
 // Employer Routes - accessible to employers and admins
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'employer'])->group(function () {

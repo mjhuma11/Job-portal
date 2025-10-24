@@ -15,11 +15,17 @@ class jobs extends Model
     
     protected $fillable = [
         'company_id',
+        'category_id',
+        'location_id',
         'job_title',
         'category',
         'salary',
+        'salary_min',
+        'salary_max',
+        'salary_type',
         'requirements',
         'experience',
+        'experience_level',
         'responsibilities',
         'benefits',
         'application_deadline',
@@ -28,17 +34,37 @@ class jobs extends Model
         'status',
         'description',
         'location',
+        'remote_work',
+        'posted_by',
     ];
     
     protected $casts = [
         'application_deadline' => 'date',
         'is_featured' => 'boolean',
+        'remote_work' => 'boolean',
+        'salary_min' => 'decimal:2',
+        'salary_max' => 'decimal:2',
     ];
     
     // Relationships
     public function company(): BelongsTo
     {
         return $this->belongsTo(companies::class, 'company_id');
+    }
+    
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+    
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(locations::class, 'location_id', 'location_id');
+    }
+    
+    public function postedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'posted_by');
     }
     
     public function jobApplications(): HasMany
@@ -69,7 +95,17 @@ class jobs extends Model
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('status', 'open');
+        return $query->where('status', 'open'); // Only approved jobs are considered active
+    }
+    
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+    
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'rejected');
     }
     
     public function scopeFeatured($query)

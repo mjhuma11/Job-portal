@@ -23,9 +23,9 @@ class HomeController extends Controller
             ->orderBy('name')
             ->paginate(8, ['*'], 'categories_page');
         
-        // Fetch recent jobs for the browse recent jobs section
+        // Fetch recent jobs for the browse recent jobs section (only approved jobs)
         $recentJobs = jobs::with('company')
-            ->active()
+            ->where('status', 'open') // Only show approved jobs
             ->notExpired()
             ->orderBy('created_at', 'desc')
             ->limit(6)

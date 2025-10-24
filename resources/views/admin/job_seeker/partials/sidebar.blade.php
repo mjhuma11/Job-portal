@@ -1,209 +1,112 @@
-<!-- Enhanced Sidebar with Solid Colors -->
-<div class="w-72 bg-white shadow-xl h-screen border-r border-gray-200">
-    <!-- User Profile Section -->
-    <div class="p-6 border-b border-gray-200 bg-gray-50">
-        <div class="flex items-center space-x-4">
-            <div class="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span class="text-white font-bold text-xl">{{ substr(auth()->user()->name, 0, 2) }}</span>
+<!-- Sidebar -->
+<div class="w-64 bg-white shadow-lg min-h-screen">
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-teal-500 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-sm">CB</span>
             </div>
-            <div>
-                <h3 class="font-bold text-gray-900 text-lg">{{ auth()->user()->name }}</h3>
-                <p class="text-gray-600 text-sm">Job Seeker</p>
-                <div class="flex items-center mt-1">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    <span class="text-xs text-green-600 font-medium">Active</span>
+            <span class="text-xl font-bold text-gray-800">CareerBridge</span>
+        </div>
+    </div>
+    
+    <div class="p-4">
+        <div class="mb-6">
+            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white font-semibold text-sm">{{ substr(auth()->user()->name, 0, 2) }}</span>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-800">{{ auth()->user()->name }}</p>
+                    <p class="text-sm text-gray-500">Job Seeker</p>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Navigation Menu -->
-    <div class="py-6">
-        <p class="px-6 text-xs uppercase text-gray-500 font-bold mb-6 tracking-wider">Navigation</p>
-        <nav class="space-y-1 px-3">
-            <!-- User Dashboard -->
-            <a href="{{ route('job_seeker.dashboard') }}" class="group bg-blue-600 text-white mx-3 rounded-lg shadow-lg hover:bg-blue-700 transition-colors duration-300">
-                <div class="flex items-center px-6 py-4">
-                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="font-semibold text-base">Dashboard</span>
-                        <p class="text-blue-100 text-xs">Overview & Stats</p>
-                    </div>
-                </div>
+        <nav class="space-y-2">
+            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">DASHBOARD</div>
+            
+            <a href="#" data-page="dashboard" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                <span>Dashboard</span>
             </a>
             
-            <!-- My Profile -->
-            <a href="{{ route('job_seeker.profile') }}" class="group text-gray-700 hover:bg-purple-50 hover:text-purple-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-purple-100 group-hover:bg-purple-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div>
-                    <span class="font-semibold">My Profile</span>
-                    <p class="text-gray-500 text-xs group-hover:text-purple-600">Personal Info</p>
-                </div>
+            <a href="{{ route('job_seeker.profile') }}" class="flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span>My Profile</span>
             </a>
             
-            <!-- My Resumes -->
-            <a href="{{ route('job_seeker.resume') }}" class="group text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-indigo-100 group-hover:bg-indigo-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <span class="font-semibold">My Resume</span>
-                    <p class="text-gray-500 text-xs group-hover:text-indigo-600">CV & Documents</p>
-                </div>
-                @php
-                    $jobSeeker = auth()->user()->jobSeeker ?? null;
-                    $hasResume = $jobSeeker && $jobSeeker->resume_file;
-                @endphp
-                @if($hasResume)
-                    <div class="w-8 h-8 bg-green-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                @else
-                    <div class="px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full shadow-lg">
-                        Add
-                    </div>
-                @endif
+            <a href="{{ route('job_seeker.profile') }}" class="flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>My Resume</span>
             </a>
             
-            <!-- Resume Management -->
-            <a href="{{ route('job_seeker.resume.manage') }}" class="group text-gray-700 hover:bg-teal-50 hover:text-teal-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-teal-100 group-hover:bg-teal-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-teal-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div>
-                    <span class="font-semibold">Resume Builder</span>
-                    <p class="text-gray-500 text-xs group-hover:text-teal-600">Manage & Edit</p>
-                </div>
+            <a href="#" data-page="resume-builder" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                <span>Resume Builder</span>
             </a>
             
-            <!-- Applied Jobs -->
-            <a href="{{ route('job_seeker.applications') }}" class="group text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-emerald-100 group-hover:bg-emerald-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <span class="font-semibold">Applied Jobs</span>
-                    <p class="text-gray-500 text-xs group-hover:text-emerald-600">Track Applications</p>
-                </div>
+            <a href="#" data-page="applications" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
+                </svg>
+                <span>Applied Jobs</span>
             </a>
             
-            <!-- Alert Jobs -->
-            <a href="{{ route('job_seeker.job_alerts') }}" class="group text-gray-700 hover:bg-amber-50 hover:text-amber-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-amber-100 group-hover:bg-amber-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 2L3 7v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V7l-7-5zM8 18v-6h4v6H8z"></path>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <span class="font-semibold">Job Alerts</span>
-                    <p class="text-gray-500 text-xs group-hover:text-amber-600">Notifications</p>
-                </div>
-                <div class="w-8 h-8 bg-orange-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                    4
-                </div>
+            <a href="#" data-page="job-alerts" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h8v-2H4v2zM4 11h8V9H4v2z"></path>
+                </svg>
+                <span>Job Alerts</span>
             </a>
             
-            <!-- Shortlist Jobs -->
-            <a href="{{ route('job_seeker.saved_jobs') }}" class="group text-gray-700 hover:bg-rose-50 hover:text-rose-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-rose-100 group-hover:bg-rose-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-rose-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <span class="font-semibold">Saved Jobs</span>
-                    <p class="text-gray-500 text-xs group-hover:text-rose-600">Bookmarked</p>
-                </div>
-            </a>
-            
-            <!-- Section Divider -->
-            <div class="px-6 py-4">
-                <div class="border-t border-gray-200/50"></div>
-                <p class="text-xs uppercase text-gray-500 font-bold mt-4 mb-2 tracking-wider">Communication</p>
-            </div>
-            
-            <!-- Following Employers -->
-            <a href="#" class="group text-gray-700 hover:bg-violet-50 hover:text-violet-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-violet-100 group-hover:bg-violet-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-violet-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <span class="font-semibold">Following</span>
-                    <p class="text-gray-500 text-xs group-hover:text-violet-600">Companies</p>
-                </div>
-            </a>
-            
-            <!-- Messages -->
-            <a href="#" class="group text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-blue-100 group-hover:bg-blue-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <span class="font-semibold">Messages</span>
-                    <p class="text-gray-500 text-xs group-hover:text-blue-600">Inbox</p>
-                </div>
-                <div class="w-8 h-8 bg-green-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg">
-                    @if(isset($stats))
-                        {{ $stats['unread_messages'] ?? 0 }}
-                    @else
-                        0
-                    @endif
-                </div>
+            <a href="#" data-page="saved-jobs" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                <span>Saved Jobs</span>
             </a>
 
-            <!-- Section Divider -->
-            <div class="px-6 py-4">
-                <div class="border-t border-gray-200"></div>
-                <p class="text-xs uppercase text-gray-500 font-bold mt-4 mb-2 tracking-wider">Settings</p>
-            </div>
+            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 mt-6">COMMUNICATION</div>
             
-            <!-- Change Password -->
-            <a href="{{ route('profile.edit') }}" class="group text-gray-700 hover:bg-gray-50 hover:text-gray-900 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                <div class="w-10 h-10 bg-gray-100 group-hover:bg-gray-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                    <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div>
-                    <span class="font-semibold">Security</span>
-                    <p class="text-gray-500 text-xs group-hover:text-gray-700">Password & Privacy</p>
-                </div>
+            <a href="#" data-page="following" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <span>Following</span>
             </a>
             
-            <!-- Log Out -->
-            <form method="POST" action="{{ route('logout') }}" class="mt-6">
+            <a href="#" data-page="messages" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                </svg>
+                <span>Messages</span>
+                <span id="message-count" class="ml-auto bg-green-500 text-white text-xs px-2 py-1 rounded-full hidden">3</span>
+            </a>
+
+            <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 mt-6">SETTINGS</div>
+            
+            <a href="#" data-page="security" class="sidebar-link flex items-center space-x-3 p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <span>Security</span>
+            </a>
+            
+            <form method="POST" action="{{ route('logout') }}" class="inline">
                 @csrf
-                <button type="submit" class="group w-full text-left text-gray-700 hover:bg-red-50 hover:text-red-700 flex items-center mx-3 px-4 py-3 rounded-lg transition-all duration-300 hover:shadow-md">
-                    <div class="w-10 h-10 bg-red-100 group-hover:bg-red-200 rounded-lg flex items-center justify-center mr-4 transition-all duration-300">
-                        <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="font-semibold">Sign Out</span>
-                        <p class="text-gray-500 text-xs group-hover:text-red-600">Logout Safely</p>
-                    </div>
+                <button type="submit" class="w-full flex items-center space-x-3 p-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Sign Out</span>
                 </button>
             </form>
         </nav>

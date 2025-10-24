@@ -454,10 +454,85 @@ class AdminController extends Controller
     /**
      * Display a listing of jobs.
      */
-    public function jobs()
+    public function jobs(Request $request)
     {
-        $jobs = jobs::with('company')->paginate(10);
-        return view('admin.admin-dashboard.jobs.index', compact('jobs'));
+        $query = jobs::with(['company', 'category', 'location']);
+
+        // Apply filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('company')) {
+            $query->whereHas('company', function($q) use ($request) {
+                $q->where('name', 'like', "%{$request->company}%");
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('job_title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $jobs = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        // Get statistics
+        $stats = [
+            'total_jobs' => jobs::count(),
+            'pending_jobs' => jobs::where('status', 'pending')->count(),
+            'approved_jobs' => jobs::where('status', 'open')->count(),
+            'rejected_jobs' => jobs::where('status', 'rejected')->count(),
+        ];
+
+        return view('admin.admin-dashboard.jobs.index', compact('jobs', 'stats'));
+    }
+
+    /**
+     * Show the form for creating a new job.
+     */
+    public function createJob()
+    {
+        $categories = Category::where('status', 1)->get();
+        $locations = locations::all();
+        $companies = companies::with('user')->get();
+        
+        return view('admin.admin-dashboard.jobs.create', compact('categories', 'locations', 'companies'));
+    }
+
+    /**
+     * Store a newly created job.
+     */
+    public function storeJob(Request $request)
+    {
+        $validatedData = $request->validate([
+            'job_title' => 'required|string|max:255',
+            'company_id' => 'required|exists:companies,id',
+            'category_id' => 'required|exists:categories,id',
+            'location_id' => 'required|exists:locations,id',
+            'job_type' => 'required|in:full-time,part-time,contract,freelance,internship',
+            'salary_min' => 'nullable|numeric|min:0',
+            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
+            'salary_type' => 'required|in:hourly,monthly,yearly',
+            'description' => 'required|string',
+            'requirements' => 'required|string',
+            'benefits' => 'nullable|string',
+            'application_deadline' => 'nullable|date|after:today',
+            'remote_work' => 'boolean',
+            'experience_level' => 'required|in:entry,mid,senior,executive',
+            'status' => 'required|in:open,pending,closed,rejected',
+            'is_featured' => 'boolean',
+        ]);
+
+        $validatedData['posted_by'] = Auth::id();
+        $validatedData['remote_work'] = $request->has('remote_work');
+        $validatedData['is_featured'] = $request->has('is_featured');
+
+        $job = jobs::create($validatedData);
+
+        return redirect()->route('admin.jobs')->with('success', 'Job created successfully.');
     }
 
     /**
@@ -465,8 +540,61 @@ class AdminController extends Controller
      */
     public function showJob(jobs $job)
     {
-        $job->load('company');
+        $job->load(['company', 'category', 'location']);
         return view('admin.admin-dashboard.jobs.show', compact('job'));
+    }
+
+    /**
+     * Show the form for editing the specified job.
+     */
+    public function editJob(jobs $job)
+    {
+        $categories = Category::where('status', 1)->get();
+        $locations = locations::all();
+        $companies = companies::with('user')->get();
+        
+        return view('admin.admin-dashboard.jobs.edit', compact('job', 'categories', 'locations', 'companies'));
+    }
+
+    /**
+     * Update the specified job.
+     */
+    public function updateJob(Request $request, jobs $job)
+    {
+        $validatedData = $request->validate([
+            'job_title' => 'required|string|max:255',
+            'company_id' => 'required|exists:companies,id',
+            'category_id' => 'required|exists:categories,id',
+            'location_id' => 'required|exists:locations,id',
+            'job_type' => 'required|in:full-time,part-time,contract,freelance,internship',
+            'salary_min' => 'nullable|numeric|min:0',
+            'salary_max' => 'nullable|numeric|min:0|gte:salary_min',
+            'salary_type' => 'required|in:hourly,monthly,yearly',
+            'description' => 'required|string',
+            'requirements' => 'required|string',
+            'benefits' => 'nullable|string',
+            'application_deadline' => 'nullable|date|after:today',
+            'remote_work' => 'boolean',
+            'experience_level' => 'required|in:entry,mid,senior,executive',
+            'status' => 'required|in:open,pending,closed,rejected',
+            'is_featured' => 'boolean',
+        ]);
+
+        $validatedData['remote_work'] = $request->has('remote_work');
+        $validatedData['is_featured'] = $request->has('is_featured');
+
+        $job->update($validatedData);
+
+        return redirect()->route('admin.jobs')->with('success', 'Job updated successfully.');
+    }
+
+    /**
+     * Remove the specified job.
+     */
+    public function destroyJob(jobs $job)
+    {
+        $job->delete();
+        return redirect()->route('admin.jobs')->with('success', 'Job deleted successfully.');
     }
 
     /**
@@ -479,12 +607,12 @@ class AdminController extends Controller
     }
 
     /**
-     * Block/Remove a job post.
+     * Reject a job post.
      */
-    public function blockJob(jobs $job)
+    public function rejectJob(jobs $job)
     {
-        $job->update(['status' => 'closed']);
-        return redirect()->back()->with('success', 'Job blocked successfully.');
+        $job->update(['status' => 'rejected']);
+        return redirect()->back()->with('success', 'Job rejected successfully.');
     }
 
     /**

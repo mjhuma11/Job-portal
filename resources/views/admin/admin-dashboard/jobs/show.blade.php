@@ -15,54 +15,85 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
-                    Back to Jobs
+                    Back to Job Management
                 </a>
                 <div class="flex items-center justify-between">
                     <div>
+                        <div class="flex items-center space-x-2 text-sm text-gray-500 mb-2">
+                            <span>Admin</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                            <span>Job Posts</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                            <span class="text-teal-600">Job Details</span>
+                        </div>
                         <h1 class="text-3xl font-bold text-gray-900">Job Details</h1>
-                        <p class="text-gray-600 mt-1">View detailed information about this job posting</p>
+                        <p class="text-gray-600 mt-1">View and manage job posting details</p>
                     </div>
                     <div class="flex space-x-2">
-                        @if($job->status !== 'open')
-                        <form action="{{ route('admin.jobs.approve', $job) }}" method="POST">
+                        <a href="{{ route('admin.jobs.edit', $job) }}" 
+                           class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Edit Job
+                        </a>
+                        
+                        @if($job->status === 'pending')
+                        <form action="{{ route('admin.jobs.approve', $job) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" 
-                                    class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                                    class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
                                     onclick="return confirm('Are you sure you want to approve this job?')">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 Approve
                             </button>
                         </form>
-                        @endif
                         
-                        @if($job->status !== 'closed')
-                        <form action="{{ route('admin.jobs.block', $job) }}" method="POST">
+                        <form action="{{ route('admin.jobs.reject', $job) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" 
-                                    class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                    onclick="return confirm('Are you sure you want to block this job?')">
-                                Block
+                                    class="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                    onclick="return confirm('Are you sure you want to reject this job?')">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Reject
                             </button>
                         </form>
                         @endif
                         
+                        @if($job->status === 'open')
                         @if(!$job->is_featured)
-                        <form action="{{ route('admin.jobs.feature', $job) }}" method="POST">
+                        <form action="{{ route('admin.jobs.feature', $job) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" 
-                                    class="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+                                    class="inline-flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
                                     onclick="return confirm('Are you sure you want to feature this job?')">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
                                 Feature
                             </button>
                         </form>
                         @else
-                        <form action="{{ route('admin.jobs.unfeature', $job) }}" method="POST">
+                        <form action="{{ route('admin.jobs.unfeature', $job) }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" 
-                                    class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                                    class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
                                     onclick="return confirm('Are you sure you want to unfeature this job?')">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
                                 Unfeature
                             </button>
                         </form>
+                        @endif
                         @endif
                     </div>
                 </div>
@@ -158,10 +189,15 @@
                                 <span class="text-sm text-gray-500">Current Status:</span>
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                     @if($job->status === 'open') bg-green-100 text-green-800
-                                    @elseif($job->status === 'closed') bg-red-100 text-red-800
-                                    @elseif($job->status === 'draft') bg-yellow-100 text-yellow-800
+                                    @elseif($job->status === 'pending') bg-yellow-100 text-yellow-800
+                                    @elseif($job->status === 'rejected') bg-red-100 text-red-800
+                                    @elseif($job->status === 'closed') bg-gray-100 text-gray-800
                                     @else bg-gray-100 text-gray-800 @endif">
-                                    {{ ucfirst($job->status) }}
+                                    @if($job->status === 'open') Approved
+                                    @elseif($job->status === 'pending') Pending
+                                    @elseif($job->status === 'rejected') Rejected
+                                    @else {{ ucfirst($job->status) }}
+                                    @endif
                                 </span>
                             </div>
                             
